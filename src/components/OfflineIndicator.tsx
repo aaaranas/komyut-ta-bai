@@ -1,5 +1,6 @@
 "use client";
 
+import { WifiOff } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
 function subscribe(callback: () => void) {
@@ -21,7 +22,8 @@ export default function OfflineIndicator() {
   if (online) return null;
 
   return (
-    <div className="bg-gray-800 px-4 py-2 text-center text-xs font-medium text-white">
+    <div className="flex items-center justify-center gap-1.5 bg-foreground px-4 py-2 text-center text-xs font-medium text-background">
+      <WifiOff className="size-3.5" />
       You&apos;re offline — showing saved routes and plans.
     </div>
   );

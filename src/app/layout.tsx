@@ -1,18 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
+import { Bus } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
+import MainNav from "@/components/MainNav";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import ThemeToggle from "@/components/ThemeToggle";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +29,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1D9E75",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#1D9E75" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1d18" },
+  ],
 };
 
 export default function RootLayout({
@@ -38,35 +41,32 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-gray-50 text-gray-900">
-        <OfflineIndicator />
-        <header className="border-b border-gray-200 bg-white">
-          <nav className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-4">
-            <Link href="/" className="font-bold text-primary">
-              Komyut ta Bai
-            </Link>
-            <div className="flex gap-1">
-              <Link
-                href="/"
-                className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-gray-600 hover:text-primary"
-              >
-                Plan
+    <html lang="en" suppressHydrationWarning className={jakarta.variable}>
+      <body className="flex min-h-dvh flex-col font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <OfflineIndicator />
+          <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
+            <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-4">
+              <Link href="/" className="flex items-center gap-2 font-bold">
+                <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+                  <Bus className="size-5" />
+                </span>
+                <span className="tracking-tight">Komyut ta Bai</span>
               </Link>
-              <Link
-                href="/routes"
-                className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-gray-600 hover:text-primary"
-              >
-                Routes
-              </Link>
+              <div className="flex items-center gap-1">
+                <MainNav />
+                <ThemeToggle />
+              </div>
             </div>
-          </nav>
-        </header>
-        {children}
-        <InstallPrompt />
+          </header>
+          {children}
+          <InstallPrompt />
+        </ThemeProvider>
       </body>
     </html>
   );

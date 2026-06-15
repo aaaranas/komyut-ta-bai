@@ -1,6 +1,12 @@
 export type StopType = "terminal" | "port" | "street_stop";
 
-export type Mode = "bus" | "vhire" | "jeepney" | "mjeepney" | "ferry";
+export type Mode =
+  | "bus"
+  | "mybus"
+  | "vhire"
+  | "jeepney"
+  | "mjeepney"
+  | "ferry";
 
 export interface Stop {
   id: string;
@@ -16,9 +22,19 @@ export interface RouteStop {
   sequence: number;
 }
 
+/** A per-day service window, e.g. weekday vs weekend hours. */
+export interface ServiceWindow {
+  /** e.g. "Weekdays", "Saturday", "Sunday". */
+  days: string;
+  first_trip: string;
+  last_trip: string;
+  /** Human-readable headway, e.g. "every 5–20 min". */
+  frequency: string;
+}
+
 export type Fare =
-  | { base_fare: number; per_km: number }
-  | { base_fare: number; flat: true };
+  | { base_fare: number; per_km: number; discounted_fare?: number }
+  | { base_fare: number; flat: true; discounted_fare?: number };
 
 export interface Route {
   id: string;
@@ -33,6 +49,8 @@ export interface Route {
   first_trip: string;
   last_trip: string;
   verified_date: string;
+  /** Detailed per-day service windows, when known (overrides the flat hours). */
+  schedule?: ServiceWindow[];
   /** True for routes imported from external sources without field checks. */
   unverified?: boolean;
   /** Where an imported route came from. */

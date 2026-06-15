@@ -7,7 +7,7 @@ import type { Stop } from "@/lib/types";
 const MapView = dynamic(() => import("@/components/MapView"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-72 w-full items-center justify-center rounded-2xl bg-gray-100 text-sm text-gray-400">
+    <div className="flex h-72 w-full items-center justify-center bg-muted text-sm text-muted-foreground">
       Loading map…
     </div>
   ),
@@ -16,9 +16,11 @@ const MapView = dynamic(() => import("@/components/MapView"), {
 export default function RouteMap({
   stops,
   color,
+  path,
 }: {
   stops: Stop[];
   color: string;
+  path?: [number, number][];
 }) {
-  return <MapView stops={stops} color={color} />;
+  return <MapView stops={stops} color={color} path={path} />;
 }

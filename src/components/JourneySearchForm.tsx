@@ -1,9 +1,12 @@
 "use client";
 
+import { Navigation } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import MajorHubs from "@/components/home/MajorHubs";
 import StopCombobox from "@/components/StopCombobox";
 import SwapButton from "@/components/SwapButton";
+import { Button } from "@/components/ui/button";
 import { getStop } from "@/lib/catalog";
 import type { Stop } from "@/lib/types";
 
@@ -52,13 +55,18 @@ export default function JourneySearchForm({
         value={destination}
         onChange={setDestination}
       />
-      <button
+
+      <MajorHubs onSelect={setOrigin} />
+
+      <Button
         type="submit"
+        size="lg"
         disabled={!origin || !destination}
-        className="mt-2 h-13 min-h-12 rounded-xl bg-primary text-base font-semibold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-1 w-full font-semibold"
       >
+        <Navigation className="size-4" />
         Plan journey
-      </button>
+      </Button>
     </form>
   );
 }

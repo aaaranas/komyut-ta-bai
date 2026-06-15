@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import PlanResults from "./PlanResults";
@@ -10,8 +11,9 @@ export default function PlanPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto w-full max-w-md px-4 py-10 text-center text-gray-500">
-          Planning your journey…
+        <main className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-16 text-center text-muted-foreground">
+          <Loader2 className="size-6 animate-spin text-primary" />
+          <p className="mt-3 text-sm">Planning your journey…</p>
         </main>
       }
     >
