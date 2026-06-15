@@ -1825,5 +1825,709 @@
   "lng": 123.871064,
   "display": "Cebu-Balamban Transcentral Highway, Tiguib, Busay, Malubog, Cebu City, Central Visayas, 6000, Philippines",
   "city": "Cebu City"
- }
+ },
+ "san miguel brewery plant": null,
+ "coca-cola bottlers corporation": null,
+ "as fortuna st": {
+  "lat": 10.343541,
+  "lng": 123.912524,
+  "display": "A. S. Fortuna Street, Holy Family Village, Banilad, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "j centre mall": {
+  "lat": 10.33571,
+  "lng": 123.934471,
+  "display": "SM City JMall, 165, A. S. Fortuna Street, Bakilid, Mandaue, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "benedicto college": {
+  "lat": 10.304998,
+  "lng": 123.909598,
+  "display": "Benedicto College - Cebu City Campus, Don Bernardo Benedicto Avenue, Tejero, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "larsian": null,
+ "oftana suites": null,
+ "oakridge business park": null,
+ "cebu home & builders": {
+  "lat": 10.293682,
+  "lng": 123.880351,
+  "display": "Cebu Home and Builders Centre, Natalio Bacalso Avenue, Maria Gochan Subdivision, San Nicolas Proper, Mambaling, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "fords inn": null,
+ "foodland": {
+  "lat": 10.343958,
+  "lng": 123.91212,
+  "display": "Cesar's Foodland Building, Governor M. Cuenco Avenue, Holy Family Village, Banilad, Cebu City, Central Visayas, 6666, Philippines",
+  "city": "Cebu City"
+ },
+ "bright academy": {
+  "lat": 10.347842,
+  "lng": 123.913376,
+  "display": "Bright Academy, Holy Family Village, Banilad, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "university of san carlos talamban": {
+  "lat": 10.355938,
+  "lng": 123.907154,
+  "display": "University of San Carlos Talamban Campus, Paseo Esperanza, Maria Luisa Park, Banilad, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "talamban elem school": null,
+ "talamban brgy hall": {
+  "lat": 10.369838,
+  "lng": 123.918388,
+  "display": "Talamban Barangay Hall, Governor M. Cuenco Avenue, Tigbao, Talamban, Cebu City, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "highway 11": {
+  "lat": 10.422284,
+  "lng": 123.796626,
+  "display": "Cebu-Balamban Transcentral Highway, Inaad, Tungkay, Cebu City, Central Visayas, 6038, Philippines",
+  "city": "Cebu City"
+ },
+ "talamban rd": null,
+ "bacayan": {
+  "lat": 10.386957,
+  "lng": 123.921265,
+  "display": "Bacayan, Cebu City, Central Visayas, 6001, Philippines",
+  "city": "Cebu City"
+ },
+ "pit-os": {
+  "lat": 10.396395,
+  "lng": 123.921693,
+  "display": "Pit-os, Cebu City, Central Visayas, 6001, Philippines",
+  "city": "Cebu City"
+ },
+ "from ayala terminal": null,
+ "jones avenue": {
+  "lat": 10.306824,
+  "lng": 123.894306,
+  "display": "Osmeña Boulevard, Santa Cruz, Calamba, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "robinsons cybergate": {
+  "lat": 10.310637,
+  "lng": 123.891776,
+  "display": "Moon Cafe, Don Gil Garcia Street, Englis, Santa Cruz, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "chung hua hospital": null,
+ "saint paul college foundation": null,
+ "landbank": {
+  "lat": 10.293031,
+  "lng": 123.903126,
+  "display": "Landbank, Lapu-Lapu Street, San Roque, Duljo Fatima, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "back to fuente osmena circle": null,
+ "back to ayala terminal": null,
+ "oppra": null,
+ "carbon via osmena blvd and vice versa": null,
+ "cdu": null,
+ "geonzon st": {
+  "lat": 10.328783,
+  "lng": 123.905138,
+  "display": "Geonzon Street, Cebu I.T. Park, Kasambagan, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "it park": {
+  "lat": 10.330798,
+  "lng": 123.906826,
+  "display": "Cebu I.T. Park, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "apas": {
+  "lat": 10.337504,
+  "lng": 123.905568,
+  "display": "Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "university of the southern philippines foundation": null,
+ "lahug high school": {
+  "lat": 10.324969,
+  "lng": 123.898682,
+  "display": "Lahug National Night High School, Gorordo Avenue, Purok 4, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "asilo dela milagrosa": null,
+ "university of cebu main": {
+  "lat": 10.296594,
+  "lng": 123.906543,
+  "display": "Cebu Technological University, M.J. Cuenco Avenue, San Roque, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "gv tower": {
+  "lat": 10.297535,
+  "lng": 123.897356,
+  "display": "GV Tower Hotel, Sanciangko Street, Kabulihan, Kalubihan, Calamba, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "university of san jose-recoletos": {
+  "lat": 10.294035,
+  "lng": 123.897495,
+  "display": "University of San Jose-Recoletos, Magallanes Street, Ermita, Duljo Fatima, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "f calderon st": {
+  "lat": 10.292077,
+  "lng": 123.898217,
+  "display": "F. Calderon Street, Ermita, Duljo Fatima, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "progresso st": null,
+ "hotel de mercedes": {
+  "lat": 10.297778,
+  "lng": 123.898849,
+  "display": "Hotel de Mercedes, Pelaez Street, Kalubihan, Calamba, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "crown regency hotel & suites": null,
+ "robinson place": null,
+ "cebu grand hotel": {
+  "lat": 10.318342,
+  "lng": 123.895347,
+  "display": "Cebu Grand Hotel, N. Escario Street, Gonzales Compound, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "turtles nest": null,
+ "handuraw pizza": null,
+ "usp-f": null,
+ "w geonzon st": {
+  "lat": 10.331016,
+  "lng": 123.906514,
+  "display": "Geonzon Street, Cebu I.T. Park, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "abad st": {
+  "lat": 10.326877,
+  "lng": 123.911298,
+  "display": "Justice Abad Santos Street, Villa Aurora, Kasambagan, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "convergys": null,
+ "j maria del mar st- skyrise 3": null,
+ "inez villa st": null,
+ "skyrise 1": {
+  "lat": 10.331602,
+  "lng": 123.907907,
+  "display": "Skyrise 1, I. Villa Street, Cebu I.T. Park, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "skyrise 2": null,
+ "aegis": {
+  "lat": 10.332105,
+  "lng": 123.907069,
+  "display": "Aegis, I. Villa Street, Cebu I.T. Park, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "sn miguel rd": {
+  "lat": 10.335629,
+  "lng": 123.907808,
+  "display": "San Miguel Road, Baca, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "omega st": {
+  "lat": 10.336929,
+  "lng": 123.905919,
+  "display": "Omega Street, Lower Panabang, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "wilson st": {
+  "lat": 10.333458,
+  "lng": 123.901261,
+  "display": "Wilson Street, Lahug, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "subandako": null,
+ "wireless": null,
+ "tipolo": {
+  "lat": 10.324159,
+  "lng": 123.887618,
+  "display": "Tipolo Ville Road, Green Valley, Banawa, Capitol Site, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "san miguel corporation": null,
+ "cebu international convention center": {
+  "lat": 10.326509,
+  "lng": 123.936164,
+  "display": "Mandaue City Government Center, Ouano Avenue, City South Special Economic Administrative Zone, Mandaue, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "uwell": null,
+ "sosyoland supermarket": null,
+ "north reclamation area": null,
+ "mandaue public market": null,
+ "saint joseph parish": null,
+ "sb cabahug st": {
+  "lat": 10.325599,
+  "lng": 123.916495,
+  "display": "F. Cabahug Street, Panagdait, Kasambagan, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "mandaue colliseum": null,
+ "estancia-ibabao": null,
+ "super metro mandaue": null,
+ "pacific mall": null,
+ "department of foreign affairs": null,
+ "gaisano grand": {
+  "lat": 10.366245,
+  "lng": 123.913577,
+  "display": "Gaisano Grand Mall Talamban, H. Abellana Street, Tigbao, Talamban, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "estancia": null,
+ "mandaue coliseum": null,
+ "cortes gerneral hospital": null,
+ "brgy mantuyong": null,
+ "brgy guizo": null,
+ "albano st": null,
+ "aboitiz football field": null,
+ "apm": {
+  "lat": 10.313632,
+  "lng": 123.917155,
+  "display": "APM Mall, A. Soriano Jr. Avenue, Mabolo, Cebu City, Central Visayas, 6666, Philippines",
+  "city": "Cebu City"
+ },
+ "queen city memoria garden": null,
+ "queensland": {
+  "lat": 10.302509,
+  "lng": 123.886541,
+  "display": "Queensland, Vicente Rama Avenue, Pailob, San Nicolas Proper, Calamba, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "g gaisano st": {
+  "lat": 10.303373,
+  "lng": 123.908678,
+  "display": "G. Gaisano Street, Tejero, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "plaza humabon": {
+  "lat": 10.296048,
+  "lng": 123.903789,
+  "display": "Plaza Hamabar, San Roque, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "plaza independencia": {
+  "lat": 10.292728,
+  "lng": 123.905891,
+  "display": "Fort San Pedro, A. Pigafetta Street, San Roque, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "cebu north bus termina": null,
+ "m logarta ave": {
+  "lat": 10.314135,
+  "lng": 123.922925,
+  "display": "M. Logarta Avenue, City South Special Economic Administrative Zone, Mandaue, Central Visayas, 6666, Philippines",
+  "city": "Cebu City"
+ },
+ "san miguel brewery": null,
+ "centro mandaue": null,
+ "sioland supermarket": null,
+ "new mandaue public market": null,
+ "brgy estancia": null,
+ "lopez jaena st": {
+  "lat": 10.31862,
+  "lng": 123.919161,
+  "display": "Lopez Jaena Street, Holy Name, Mabolo, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "subangdako": null,
+ "cd seno st": null,
+ "wo seno st": null,
+ "as fortuna st ext": null,
+ "ouano ave": {
+  "lat": 10.346865,
+  "lng": 123.912709,
+  "display": "Ananias G Ouano Sports Center, Governor M. Cuenco Avenue, Holy Family Village, Banilad, Cebu City, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "asoriano ave": null,
+ "bir mandaue": null,
+ "jl briones st": {
+  "lat": 10.307593,
+  "lng": 123.914787,
+  "display": "J. L. Briones Street, Tejero, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "a mabini st": {
+  "lat": 10.394737,
+  "lng": 123.919022,
+  "display": "A. Mabini Street, Villa del Rio 2, Pit-os, Cebu City, Central Visayas, 6001, Philippines",
+  "city": "Cebu City"
+ },
+ "ouano": {
+  "lat": 10.304587,
+  "lng": 123.90426,
+  "display": "Ouano Car Accessories, T. Villa Street, Lorega, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "13th ave": {
+  "lat": 10.29243,
+  "lng": 123.879057,
+  "display": "Natalio Bacalso Avenue, Maria Gochan Subdivision, Mambaling, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "queen city memorial gardens": null,
+ "m logarta st": {
+  "lat": 10.298136,
+  "lng": 123.90528,
+  "display": "Logarta Street, San Roque, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "wireless flyover": null,
+ "cd seno st -parkmall": null,
+ "new public market": null,
+ "bbendicto st": null,
+ "gmaxilom ave ext": null,
+ "mlogarta st": null,
+ "ljaena st": null,
+ "b ceniza st": null,
+ "norkis park": null,
+ "norkis": null,
+ "larsian banilad": null,
+ "cebu home and builders": {
+  "lat": 10.293682,
+  "lng": 123.880351,
+  "display": "Cebu Home and Builders Centre, Natalio Bacalso Avenue, Maria Gochan Subdivision, San Nicolas Proper, Mambaling, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "banilad flyover": null,
+ "robinsons supermarket": {
+  "lat": 10.312489,
+  "lng": 123.894793,
+  "display": "Robinsons Supermarket, Juana Osmeña Street, Gonzales Compound, Santa Cruz, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "country mall": {
+  "lat": 10.33965,
+  "lng": 123.910541,
+  "display": "Gaisano Country Mall, Camp Lapu-Lapu Road, San Antonio Village, Apas, Cebu City, Central Visayas, 6666, Philippines",
+  "city": "Cebu City"
+ },
+ "*optional": null,
+ "eo perez st": null,
+ "s&r membership shopping": null,
+ "p larazzabal ave": null,
+ "st james amusement park": null,
+ "mandaue city college": null,
+ "new mandaue city public market": null,
+ "jose l briones ave": null,
+ "hotel nenita": null,
+ "metro fresh & easy": null,
+ "umapad": null,
+ "bridges town square": null,
+ "un ave": {
+  "lat": 10.311996,
+  "lng": 123.885399,
+  "display": "Chu Un Temple, Vicente Rama Avenue, Englis, Banawa, Calamba, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "new mactan-mandaue bridge": null,
+ "pusok": null,
+ "quezon national highway": null,
+ "marina mall": null,
+ "savemore mactan": null,
+ "mepz 1": null,
+ "gate 1, 2, 3, 4, 5": null,
+ "ibo": {
+  "lat": 10.448066,
+  "lng": 123.832368,
+  "display": "Ibo, Tagba-o, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "buaya": null,
+ "punta engano rd": null,
+ "brgy mactan": null,
+ "mactan shrine": null,
+ "lapulapu monument": null,
+ "punta engano": null,
+ "shanrilas mactan resort & spa": null,
+ "movenpick resort": null,
+ "cebu paradive resort": null,
+ "abaca boutique resort": null,
+ "be resort": null,
+ "palm beach resort & spa": null,
+ "cebu sea world": null,
+ "casa carmela mactan resort": null,
+ "amisa residences": null,
+ "discovery bay hotel": null,
+ "hilton resort": null,
+ "s&r shopping": null,
+ "ac cortes ave": null,
+ "natures spring plant": null,
+ "uc-lm": {
+  "lat": 10.286492,
+  "lng": 123.877961,
+  "display": "UC Mambaling Access Road, Mambaling, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "old mandaue-mactan bridge": null,
+ "ml quezon ave": null,
+ "general milling corp": null,
+ "metro mactan": null,
+ "mantawe rd": null,
+ "ompad st": null,
+ "gy dela serna st": null,
+ "opon puj terminal": null,
+ "white gold terminal": null,
+ "j mall": {
+  "lat": 10.33571,
+  "lng": 123.934471,
+  "display": "SM City JMall, 165, A. S. Fortuna Street, Bakilid, Mandaue, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "maguikay": null,
+ "paknaan": null,
+ "cor canduman": null,
+ "consolacion": null,
+ "fooda consolacion": null,
+ "sm city consolacion": null,
+ "bagong daan": null,
+ "liloan": null,
+ "sm consolacion": null,
+ "mandaue city": {
+  "lat": 10.326509,
+  "lng": 123.936164,
+  "display": "Mandaue City Government Center, Ouano Avenue, City South Special Economic Administrative Zone, Mandaue, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "jagobiao": null,
+ "canduman": {
+  "lat": 10.371417,
+  "lng": 123.923467,
+  "display": "Canduman Bridge, Governor M. Cuenco Avenue, Tigbao, Talamban, Cebu City, Central Visayas, 6014, Philippines",
+  "city": "Cebu City"
+ },
+ "insular square": null,
+ "coca cola plant": null,
+ "san miguel plant": null,
+ "aboitiz sports field": null,
+ "robinsons galleria cebu": {
+  "lat": 10.304789,
+  "lng": 123.911245,
+  "display": "Dennt's Pizza, General Maxilom Avenue Extension, Tejero, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "the freeman": {
+  "lat": 10.297153,
+  "lng": 123.902287,
+  "display": "The Freeman, Dionisio Jakosalem Street, Señor Santo Niño, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "sorsogon rd": null,
+ "negros rd": {
+  "lat": 10.314993,
+  "lng": 123.903746,
+  "display": "Negros Road, Cebu Business Park, Lorega, Luz, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "ayala puj terminal": null,
+ "quest hotel": {
+  "lat": 10.319219,
+  "lng": 123.902939,
+  "display": "Quest Hotel & Grand Cenia Residences, Archbishop Reyes Avenue, Cebu Business Park, Luz, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "honkong plaza hotel": null,
+ "btc": null,
+ "univesity of san carlos": null,
+ "usc-talamban": {
+  "lat": 10.355938,
+  "lng": 123.907154,
+  "display": "University of San Carlos Talamban Campus, Paseo Alexandra, Maria Luisa Park, Banilad, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "gov mcuenco ave": null,
+ "juan luna ave": {
+  "lat": 10.309992,
+  "lng": 123.918129,
+  "display": "Juan Luna Avenue, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "sn carlos seminary college": null,
+ "c rosales ave": {
+  "lat": 10.32017,
+  "lng": 123.909947,
+  "display": "Cardinal Rosales Avenue, Casals Village, Luz, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "keppel": {
+  "lat": 10.318427,
+  "lng": 123.908673,
+  "display": "Keppel, Camotes Road, Cebu Business Park, Luz, Cebu City, Central Visayas, 6666, Philippines",
+  "city": "Cebu City"
+ },
+ "g echavez st": {
+  "lat": 10.308024,
+  "lng": 123.903105,
+  "display": "General Echavez Street, Zapatera, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "junquera st ext": null,
+ "opon public market to metro-lapulapu": null,
+ "gaisano island mall": null,
+ "lapulapu city hall": null,
+ "mepza": null,
+ "shangrila hotel": null,
+ "p larrazabal ave": null,
+ "new manadue public market": null,
+ "mandaue city hospital": null,
+ "jose l briones st": {
+  "lat": 10.305893,
+  "lng": 123.912306,
+  "display": "Jose R. Gullas Halad Museum, J. L. Briones Street, Tejero, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "highland": {
+  "lat": 10.395809,
+  "lng": 123.790553,
+  "display": "Sudlon Highland Springs Farm, Sudlon Road, Cantipla, Sudlon II, Cebu City, Central Visayas, 6038, Philippines",
+  "city": "Cebu City"
+ },
+ "total": {
+  "lat": 10.311636,
+  "lng": 123.922087,
+  "display": "Total, Sergio Osmeña Avenue, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "brgy umapad": null,
+ "ml quezon ntnl highway": null,
+ "mactan": {
+  "lat": 10.312704,
+  "lng": 124.020488,
+  "display": "Seagrove Mactan Cebu, Punta Engaño, Lapu-Lapu, Central Visayas, 6015, Philippines",
+  "city": "Cebu"
+ },
+ "mactan ocean town": null,
+ "maribago": null,
+ "maribago blue waters": null,
+ "cebu white sands": null,
+ "save more maribago": null,
+ "metro express maribago": null,
+ "cordova": {
+  "lat": 10.274563,
+  "lng": 123.916242,
+  "display": "Cebu-Cordova Link Expressway, Lapu-Lapu, Central Visayas, 6015, Philippines",
+  "city": "Cebu"
+ },
+ "babag 2": {
+  "lat": 10.373975,
+  "lng": 123.85,
+  "display": "Babag Ⅱ, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "deca homes": {
+  "lat": 10.307632,
+  "lng": 123.866695,
+  "display": "Urban Deca Homes Tisa, Tisa, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "babag 1": {
+  "lat": 10.373975,
+  "lng": 123.85,
+  "display": "Babag Ⅱ, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "tiangue rd -looc": null,
+ "lapulapu city central school": null,
+ "yanadia": null,
+ "s osmena st": {
+  "lat": 10.310497,
+  "lng": 123.895363,
+  "display": "Juana Osmeña Street, Santa Cruz, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "lapulapu city public market": null,
+ "gate 4": {
+  "lat": 10.297078,
+  "lng": 123.905369,
+  "display": "Lapu-Lapu Street, San Roque, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu"
+ },
+ "gate 3": {
+  "lat": 10.296309,
+  "lng": 123.904986,
+  "display": "Lapu-Lapu Street, San Roque, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu"
+ },
+ "taiyo yuden": null,
+ "lear": null,
+ "gate 2": {
+  "lat": 10.337024,
+  "lng": 123.904049,
+  "display": "Camp Lapu-Lapu Road, Lower Panabang, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu"
+ },
+ "gate 1": {
+  "lat": 10.337024,
+  "lng": 123.904049,
+  "display": "Camp Lapu-Lapu Road, Lower Panabang, Apas, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu"
+ },
+ "savemore supermarket": {
+  "lat": 10.281879,
+  "lng": 123.879823,
+  "display": "Savemore Seaside City, Seaside Avenue, Cebu South Road Properties, Mambaling, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "the bellavista hotel": null,
+ "goldberry hotel & suites": {
+  "lat": 10.31811,
+  "lng": 123.898852,
+  "display": "Goldberry suites & hotel, Gonzales Compound, Camputhaw, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "gaisano mactan island mall": null,
+ "dulcenia hotel and suites": null,
+ "metro gaisano mactan": null,
+ "bm dimataga st": null,
+ "poblacion": {
+  "lat": 10.295115,
+  "lng": 123.902827,
+  "display": "Señor Santo Niño, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "opon plaza": null,
+ "mactan ferry boat terminal": null,
+ "birhen sa regla": null,
+ "r rodriguez st": {
+  "lat": 10.308912,
+  "lng": 123.891855,
+  "display": "B. Rodriguez Street, Sambag II, Calamba, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "tiangue rd": null,
+ "looc": null,
+ "babab 1": null,
+ "hall of justice": {
+  "lat": 10.306947,
+  "lng": 123.917934,
+  "display": "Cebu City Hall of Justice, Sergio Osmeña Avenue, Tejero, Carreta, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "ff cruz st": null,
+ "ac cortez ave": null,
+ "uclm": null,
+ "mactan mandaue bridge": null,
+ "mv patalinghug ave": null,
+ "crown regency suites mactan": null,
+ "robinsons supermarket mactan": null,
+ "tamiya terminal": null,
+ "mv patalinghug jr ave": null,
+ "crown regency suites": null,
+ "lapu-lapu city hall": null,
+ "dulcinea hotel suites": null,
+ "goldberry suites and hotel": null,
+ "muelle osmena port": null,
+ "our lady of rule parish": null,
+ "opon public market": null,
+ "gaisano metro": {
+  "lat": 10.295863,
+  "lng": 123.898315,
+  "display": "Metro Department Store, Colon Street, Kalubihan, Duljo Fatima, Cebu City, Central Visayas, 6000, Philippines",
+  "city": "Cebu City"
+ },
+ "mactan cebu international airport authority": null
 }

@@ -6,8 +6,15 @@ export function formatFare(pesos: number): string {
 
 /** Human-readable fare structure, e.g. "₱150 flat" or "₱15 + ₱1.75/km". */
 export function describeFare(route: Route): string {
-  if ("flat" in route.fare) return `${formatFare(route.fare.base_fare)} flat`;
-  return `${formatFare(route.fare.base_fare)} + ₱${route.fare.per_km.toFixed(2)}/km`;
+  if ("flat" in route.fare && route.fare.base_fare === 0) return "Free ride";
+  const base =
+    "flat" in route.fare
+      ? `${formatFare(route.fare.base_fare)} flat`
+      : `${formatFare(route.fare.base_fare)} + ₱${route.fare.per_km.toFixed(2)}/km`;
+  if (route.fare.discounted_fare !== undefined) {
+    return `${base} · ${formatFare(route.fare.discounted_fare)} student/senior/PWD`;
+  }
+  return base;
 }
 
 /**

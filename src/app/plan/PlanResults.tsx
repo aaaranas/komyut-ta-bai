@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -40,14 +41,15 @@ export default function PlanResults() {
     <main className="mx-auto w-full max-w-md flex-1 px-4 pb-12 pt-6">
       <Link
         href="/"
-        className="mb-4 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary"
+        className="mb-4 inline-flex min-h-9 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
       >
-        ← Back to search
+        <ArrowLeft className="size-4" />
+        Back to search
       </Link>
 
-      <h1 className="text-xl font-bold text-gray-900">
-        {origin?.name ?? (originId || "?")}{" "}
-        <span className="text-gray-400">→</span>{" "}
+      <h1 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-bold tracking-tight text-foreground">
+        {origin?.name ?? (originId || "?")}
+        <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
         {destination?.name ?? (destinationId || "?")}
       </h1>
 
@@ -56,7 +58,7 @@ export default function PlanResults() {
       {!hasJourney ? (
         <NoRouteFound />
       ) : result.legs.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-gray-500">
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           You&apos;re already there, bai! Origin and destination are the same
           stop.
         </p>
@@ -73,16 +75,16 @@ export default function PlanResults() {
               />
             ))}
             <li className="flex items-center gap-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg text-white">
-                📍
+              <div className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground">
+                <MapPin className="size-5" />
               </div>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-semibold text-foreground">
                 Arrive at {destination.name}
               </p>
             </li>
           </ol>
 
-          <p className="mt-6 text-xs text-gray-400">
+          <p className="mt-6 text-xs text-muted-foreground">
             Fares and times are estimates from community-verified data. Actual
             trips vary with traffic and sea conditions.
           </p>

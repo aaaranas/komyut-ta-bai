@@ -1,17 +1,31 @@
 "use client";
 
+import { Search } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
+import StopTypeBadge from "@/components/StopTypeBadge";
+import { Input } from "@/components/ui/input";
 import { stops } from "@/lib/catalog";
+import { HUB_STOP_TYPES, STOP_TYPE_CONFIG } from "@/lib/constants";
 import type { Stop } from "@/lib/types";
+
+/** Major hubs first, so terminals and ports surface to the top of the list. */
+function byHubThenName(a: Stop, b: Stop): number {
+  const aHub = HUB_STOP_TYPES.includes(a.type) ? 0 : 1;
+  const bHub = HUB_STOP_TYPES.includes(b.type) ? 0 : 1;
+  return aHub - bHub || a.name.localeCompare(b.name);
+}
 
 function matchStops(query: string): Stop[] {
   const needle = query.trim().toLowerCase();
-  if (needle === "") return stops;
-  return stops.filter(
-    (stop) =>
-      stop.name.toLowerCase().includes(needle) ||
-      stop.municipality.toLowerCase().includes(needle)
-  );
+  const matched =
+    needle === ""
+      ? stops
+      : stops.filter(
+          (stop) =>
+            stop.name.toLowerCase().includes(needle) ||
+            stop.municipality.toLowerCase().includes(needle)
+        );
+  return [...matched].sort(byHubThenName).slice(0, 50);
 }
 
 interface Props {
@@ -60,39 +74,49 @@ export default function StopCombobox({
     <div className="relative">
       <label
         htmlFor={id}
-        className="mb-1 block text-sm font-medium text-gray-700"
+        className="mb-1.5 block text-sm font-medium text-foreground"
       >
         {label}
       </label>
-      <input
-        id={id}
-        type="text"
-        autoComplete="off"
-        placeholder={placeholder}
-        value={value ? value.name : query}
-        onChange={(event) => handleInputChange(event.target.value)}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-base text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          id={id}
+          type="text"
+          autoComplete="off"
+          placeholder={placeholder}
+          value={value ? value.name : query}
+          onChange={(event) => handleInputChange(event.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className="pl-9"
+        />
+      </div>
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-          {suggestions.map((stop) => (
-            <li key={stop.id}>
-              <button
-                type="button"
-                onClick={() => handleSelect(stop)}
-                className="flex min-h-11 w-full flex-col px-4 py-2 text-left hover:bg-primary-light"
-              >
-                <span className="text-sm font-medium text-gray-900">
-                  {stop.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {stop.municipality}
-                </span>
-              </button>
-            </li>
-          ))}
+        <ul className="absolute z-20 mt-1.5 max-h-72 w-full overflow-auto rounded-xl border bg-popover p-1 shadow-lg">
+          {suggestions.map((stop) => {
+            const Icon = STOP_TYPE_CONFIG[stop.type].Icon;
+            return (
+              <li key={stop.id}>
+                <button
+                  type="button"
+                  onClick={() => handleSelect(stop)}
+                  className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-accent"
+                >
+                  <Icon className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {stop.name}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {stop.municipality}
+                    </span>
+                  </span>
+                  <StopTypeBadge type={stop.type} />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

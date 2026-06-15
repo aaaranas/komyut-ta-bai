@@ -34,11 +34,16 @@ const stateKey = (state: SearchState) => `${state.stop}|${state.route ?? ""}`;
 /** Tie-breaker so equally-priced paths prefer the quicker one (and vice versa). */
 const SECONDARY_WEIGHT = 1e-4;
 
-function edgeBoardingFee(edge: Edge, currentRoute: string | null): number {
-  const boardsNewVehicle =
-    edge.route_id !== null && edge.route_id !== currentRoute;
-  if (!boardsNewVehicle) return 0;
-  return boardingFare(getRoute(edge.route_id!)!);
+/**
+ * Search-only time cost added per boarding, so a journey prefers staying on
+ * one vehicle over hopping between overlapping routes to shave a minute. It
+ * does not affect the reported duration, which is recomputed from in-vehicle
+ * time in mergeHopsIntoLegs.
+ */
+const BOARDING_PENALTY_MINS = 5;
+
+function boardsNewVehicle(edge: Edge, currentRoute: string | null): boolean {
+  return edge.route_id !== null && edge.route_id !== currentRoute;
 }
 
 function visitCost(
@@ -85,9 +90,13 @@ function runSearch(
     }
 
     for (const edge of edgesFrom(current.state.stop)) {
-      const minutes = current.minutes + edge.minutes;
+      const boards = boardsNewVehicle(edge, current.state.route);
+      const minutes =
+        current.minutes + edge.minutes + (boards ? BOARDING_PENALTY_MINS : 0);
       const fare =
-        current.fare + edge.fare + edgeBoardingFee(edge, current.state.route);
+        current.fare +
+        edge.fare +
+        (boards ? boardingFare(getRoute(edge.route_id!)!) : 0);
       const cost = visitCost(minutes, fare, preference);
 
       const nextState: SearchState = { stop: edge.to, route: edge.route_id };

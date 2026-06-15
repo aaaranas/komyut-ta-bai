@@ -1,6 +1,8 @@
 "use client";
 
+import { Download, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { INSTALL_PROMPT_DISMISS_KEY } from "@/lib/constants";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -44,29 +46,27 @@ export default function InstallPrompt() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
       <div className="mx-auto flex max-w-md items-center gap-3">
-        <span className="text-2xl" aria-hidden="true">
-          📲
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          <Download className="size-5" />
         </span>
-        <p className="flex-1 text-sm text-gray-700">
+        <p className="flex-1 text-sm text-foreground">
           Install Komyut ta Bai for offline trip planning anywhere in Cebu.
         </p>
-        <button
-          type="button"
-          onClick={accept}
-          className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-white"
-        >
+        <Button type="button" size="sm" onClick={accept}>
           Install
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           aria-label="Dismiss install prompt"
           onClick={dismiss}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+          className="text-muted-foreground"
         >
-          ✕
-        </button>
+          <X className="size-4" />
+        </Button>
       </div>
     </div>
   );

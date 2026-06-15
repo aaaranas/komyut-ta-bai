@@ -53,27 +53,35 @@ function addStopMarkers(
   );
 }
 
-function addRouteLine(map: maplibregl.Map, stops: Stop[], color: string): void {
-  if (stops.length < 2) return;
+function addRouteLine(
+  map: maplibregl.Map,
+  stops: Stop[],
+  color: string,
+  path?: [number, number][]
+): void {
+  // Prefer a road-following polyline when supplied; otherwise connect stops.
+  const coordinates =
+    path && path.length >= 2 ? path : stops.map((stop) => [stop.lng, stop.lat]);
+  if (coordinates.length < 2) return;
+  // A solid line reads as the real road path; dashed implies "approximate".
+  const isRoadPath = Boolean(path && path.length >= 2);
   map.addSource("route-line", {
     type: "geojson",
     data: {
       type: "Feature",
       properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates: stops.map((stop) => [stop.lng, stop.lat]),
-      },
+      geometry: { type: "LineString", coordinates },
     },
   });
   map.addLayer({
     id: "route-line",
     type: "line",
     source: "route-line",
+    layout: { "line-cap": "round", "line-join": "round" },
     paint: {
       "line-color": color,
-      "line-width": 3,
-      "line-dasharray": [1, 1.5],
+      "line-width": 4,
+      ...(isRoadPath ? {} : { "line-dasharray": [1, 1.5] }),
     },
   });
 }
@@ -89,10 +97,12 @@ interface MapViewProps {
   stops: Stop[];
   /** Line/marker color, typically the route's mode color. */
   color: string;
+  /** Optional road-following polyline; falls back to straight stop links. */
+  path?: [number, number][];
   className?: string;
 }
 
-export default function MapView({ stops, color, className }: MapViewProps) {
+export default function MapView({ stops, color, path, className }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,7 +111,7 @@ export default function MapView({ stops, color, className }: MapViewProps) {
     const map = createMap(containerRef.current);
     const markers = addStopMarkers(map, stops, color);
     map.on("load", () => {
-      addRouteLine(map, stops, color);
+      addRouteLine(map, stops, color, path);
       fitMapToStops(map, stops);
     });
 
@@ -109,7 +119,7 @@ export default function MapView({ stops, color, className }: MapViewProps) {
       markers.forEach((marker) => marker.remove());
       map.remove();
     };
-  }, [stops, color]);
+  }, [stops, color, path]);
 
   return (
     <div
