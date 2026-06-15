@@ -1,6 +1,6 @@
 "use client";
 
-import { Map, Navigation, Route } from "lucide-react";
+import { Navigation, Route } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -12,12 +12,6 @@ const LINKS = [
     label: "Routes",
     Icon: Route,
     match: (p: string) => p.startsWith("/routes"),
-  },
-  {
-    href: "/map",
-    label: "Map",
-    Icon: Map,
-    match: (p: string) => p.startsWith("/map"),
   },
 ];
 

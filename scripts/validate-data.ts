@@ -2,7 +2,6 @@
  * Data integrity checks for the transit dataset (curated + generated).
  * Run with: npm run validate. Exits non-zero if any check fails.
  */
-import { experimentalJeepneyRoutes } from "../src/data/experimental/cebu-city-jeepneys";
 import { routes, stops, transfers } from "../src/lib/catalog";
 import { CEBU_BOUNDS } from "../src/lib/constants";
 import type { Route, Stop, Transfer } from "../src/lib/types";
@@ -94,27 +93,6 @@ function checkTransfers(
   return errors;
 }
 
-/** Raw scraped routes only need identity and provenance checks. */
-function checkExperimentalRoutes(): string[] {
-  const errors: string[] = [];
-  const seenCodes = new Set<string>();
-  for (const route of experimentalJeepneyRoutes) {
-    if (seenCodes.has(route.code)) {
-      errors.push(`Duplicate experimental route code: ${route.code}`);
-    }
-    seenCodes.add(route.code);
-    if (!route.source_url.startsWith("https://")) {
-      errors.push(`Experimental route "${route.code}" has no valid source URL`);
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(route.fetched_date)) {
-      errors.push(
-        `Experimental route "${route.code}" has no valid fetched_date`
-      );
-    }
-  }
-  return errors;
-}
-
 function main(): void {
   const stopIds = new Set(stops.map((stop) => stop.id));
   const errors = [
@@ -126,7 +104,6 @@ function main(): void {
       ...checkRouteFares(route),
     ]),
     ...checkTransfers(transfers, stopIds),
-    ...checkExperimentalRoutes(),
   ];
 
   if (errors.length > 0) {
@@ -137,7 +114,7 @@ function main(): void {
 
   console.log(
     `✓ Data valid: ${stops.length} stops, ${routes.length} routes, ` +
-      `${transfers.length} transfers, ${experimentalJeepneyRoutes.length} experimental routes`
+      `${transfers.length} transfers`
   );
 }
 
