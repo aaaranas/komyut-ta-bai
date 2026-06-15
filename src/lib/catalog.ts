@@ -1,7 +1,5 @@
-import { jeepneyRoutes } from "@/data/generated/jeepney-routes";
-import { jeepneyStops } from "@/data/generated/jeepney-stops";
 import { myBusGeometry } from "@/data/generated/mybus-geometry";
-import { myBusInterchanges } from "@/data/mybus-interchanges";
+import { jeepneyRoutes, jeepneyStops } from "@/data/jeepneys";
 import { myBusRoutes } from "@/data/mybus-routes";
 import { myBusStops } from "@/data/mybus-stops";
 import { curatedRoutes } from "@/data/routes";
@@ -12,8 +10,9 @@ import type { Route, Stop, Transfer } from "@/lib/types";
 
 /**
  * Single access point for the transit dataset: merges the hand-curated
- * corridors and MyBus with the generated (unverified) city-jeepney network
- * and provides indexed lookups so callers never build their own.
+ * corridors, MyBus, and the verified jeepney/e-jeepney routes (which share
+ * stop ids at common landmarks), and provides indexed lookups so callers
+ * never build their own.
  */
 
 export const stops: Stop[] = [...curatedStops, ...myBusStops, ...jeepneyStops];
@@ -22,10 +21,7 @@ export const routes: Route[] = [
   ...myBusRoutes,
   ...jeepneyRoutes,
 ];
-export const transfers: Transfer[] = [
-  ...curatedTransfers,
-  ...myBusInterchanges,
-];
+export const transfers: Transfer[] = [...curatedTransfers];
 export type { Route, Stop, Transfer };
 
 const stopsById: ReadonlyMap<string, Stop> = new Map(
