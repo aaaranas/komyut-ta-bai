@@ -48,7 +48,7 @@ export default function NetworkMapPage() {
   }));
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pb-12 pt-6">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-12 pt-6">
       <h1 className="text-2xl font-bold tracking-tight text-foreground">
         MyBus network map
       </h1>

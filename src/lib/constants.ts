@@ -140,7 +140,5 @@ export const HUB_STOP_TYPES: StopType[] = ["terminal", "port"];
 /** Cebu City center, the map's default view before fitting to stops. */
 export const MAP_DEFAULT_CENTER: [number, number] = [123.8854, 10.3157];
 export const MAP_DEFAULT_ZOOM = 10;
-export const OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-export const OSM_ATTRIBUTION = "© OpenStreetMap contributors";
 
 export const INSTALL_PROMPT_DISMISS_KEY = "komyut-install-dismissed";

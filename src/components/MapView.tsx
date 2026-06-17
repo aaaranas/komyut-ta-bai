@@ -2,32 +2,21 @@
 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import BasemapSwitcher from "@/components/map/BasemapSwitcher";
 import {
-  MAP_DEFAULT_CENTER,
-  MAP_DEFAULT_ZOOM,
-  OSM_ATTRIBUTION,
-  OSM_TILE_URL,
-} from "@/lib/constants";
+  applyBasemap,
+  DEFAULT_BASEMAP_ID,
+  getBasemap,
+  rasterStyle,
+} from "@/lib/basemaps";
+import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM } from "@/lib/constants";
 import type { Stop } from "@/lib/types";
-
-const OSM_RASTER_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: "raster",
-      tiles: [OSM_TILE_URL],
-      tileSize: 256,
-      attribution: OSM_ATTRIBUTION,
-    },
-  },
-  layers: [{ id: "osm", type: "raster", source: "osm" }],
-};
 
 function createMap(container: HTMLDivElement): maplibregl.Map {
   const map = new maplibregl.Map({
     container,
-    style: OSM_RASTER_STYLE,
+    style: rasterStyle(getBasemap(DEFAULT_BASEMAP_ID)),
     center: MAP_DEFAULT_CENTER,
     zoom: MAP_DEFAULT_ZOOM,
     attributionControl: { compact: true },
@@ -104,11 +93,14 @@ interface MapViewProps {
 
 export default function MapView({ stops, color, path, className }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const [basemapId, setBasemapId] = useState(DEFAULT_BASEMAP_ID);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const map = createMap(containerRef.current);
+    mapRef.current = map;
     const markers = addStopMarkers(map, stops, color);
     map.on("load", () => {
       addRouteLine(map, stops, color, path);
@@ -116,17 +108,28 @@ export default function MapView({ stops, color, path, className }: MapViewProps)
     });
 
     return () => {
+      mapRef.current = null;
       markers.forEach((marker) => marker.remove());
       map.remove();
     };
   }, [stops, color, path]);
 
+  const handleBasemapChange = (id: string) => {
+    setBasemapId(id);
+    const map = mapRef.current;
+    if (map?.isStyleLoaded()) applyBasemap(map, getBasemap(id));
+    else map?.once("idle", () => applyBasemap(map, getBasemap(id)));
+  };
+
   return (
-    <div
-      ref={containerRef}
-      className={className ?? "h-72 w-full rounded-2xl"}
-      role="img"
-      aria-label="Map of route stops"
-    />
+    <div className={`relative ${className ?? "h-72 w-full rounded-2xl"}`}>
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="img"
+        aria-label="Map of route stops"
+      />
+      <BasemapSwitcher value={basemapId} onChange={handleBasemapChange} />
+    </div>
   );
 }

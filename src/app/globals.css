@@ -3,58 +3,84 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Palette built on the official colors of Cebu Province — blue, gold, red,
+ * and white — balanced with neutral grays. Blue leads (primary actions,
+ * header, hero); gold is the brand mark and warm interaction accent; red is
+ * reserved for alerts; white/neutral carry the surfaces.
+ */
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.995 0.004 150);
-  --foreground: oklch(0.21 0.02 160);
+  --background: oklch(0.99 0.004 250);
+  --foreground: oklch(0.21 0.03 262);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.02 160);
+  --card-foreground: oklch(0.21 0.03 262);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.02 160);
-  --primary: oklch(0.6 0.128 163);
-  --primary-foreground: oklch(0.99 0.01 160);
-  --secondary: oklch(0.96 0.01 160);
-  --secondary-foreground: oklch(0.27 0.02 160);
-  --muted: oklch(0.97 0.008 160);
-  --muted-foreground: oklch(0.52 0.02 160);
-  --accent: oklch(0.95 0.03 165);
-  --accent-foreground: oklch(0.27 0.04 163);
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.99 0.01 160);
-  --border: oklch(0.92 0.008 160);
-  --input: oklch(0.92 0.008 160);
-  --ring: oklch(0.6 0.128 163);
+  --popover-foreground: oklch(0.21 0.03 262);
 
-  /* Legacy aliases kept so any unmigrated utility still resolves. */
+  /* Cebu blue */
+  --primary: oklch(0.48 0.18 262);
+  --primary-foreground: oklch(0.98 0.01 250);
+
+  --secondary: oklch(0.96 0.01 255);
+  --secondary-foreground: oklch(0.3 0.03 262);
+  --muted: oklch(0.97 0.008 255);
+  --muted-foreground: oklch(0.52 0.02 258);
+
+  /* Soft gold — warm interaction accent (hover/active surfaces) */
+  --accent: oklch(0.95 0.06 90);
+  --accent-foreground: oklch(0.42 0.08 75);
+
+  /* Cebu red */
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0.01 250);
+
+  --border: oklch(0.91 0.01 255);
+  --input: oklch(0.91 0.01 255);
+  --ring: oklch(0.48 0.18 262);
+
+  /* Vivid Cebu gold for the brand mark (navy glyph on gold = flag motif) */
+  --gold: oklch(0.8 0.15 86);
+  --gold-foreground: oklch(0.26 0.06 262);
+
+  /* Legacy aliases so any unmigrated utility still resolves. */
   --color-primary: var(--primary);
-  --color-primary-dark: oklch(0.52 0.13 163);
+  --color-primary-dark: oklch(0.4 0.17 262);
   --color-primary-light: var(--accent);
 }
 
 .dark {
-  --background: oklch(0.18 0.015 165);
-  --foreground: oklch(0.96 0.005 150);
-  --card: oklch(0.215 0.018 165);
-  --card-foreground: oklch(0.96 0.005 150);
-  --popover: oklch(0.215 0.018 165);
-  --popover-foreground: oklch(0.96 0.005 150);
-  --primary: oklch(0.72 0.13 163);
-  --primary-foreground: oklch(0.18 0.02 165);
-  --secondary: oklch(0.27 0.02 165);
-  --secondary-foreground: oklch(0.96 0.005 150);
-  --muted: oklch(0.27 0.02 165);
-  --muted-foreground: oklch(0.71 0.015 160);
-  --accent: oklch(0.31 0.03 165);
-  --accent-foreground: oklch(0.96 0.005 150);
-  --destructive: oklch(0.7 0.19 22);
-  --destructive-foreground: oklch(0.98 0.01 160);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.72 0.13 163);
+  --background: oklch(0.18 0.02 262);
+  --foreground: oklch(0.96 0.01 250);
+  --card: oklch(0.21 0.025 262);
+  --card-foreground: oklch(0.96 0.01 250);
+  --popover: oklch(0.21 0.025 262);
+  --popover-foreground: oklch(0.96 0.01 250);
+
+  --primary: oklch(0.65 0.17 264);
+  --primary-foreground: oklch(0.99 0.01 250);
+
+  --secondary: oklch(0.28 0.02 262);
+  --secondary-foreground: oklch(0.96 0.01 250);
+  --muted: oklch(0.28 0.02 262);
+  --muted-foreground: oklch(0.71 0.02 258);
+
+  --accent: oklch(0.32 0.05 88);
+  --accent-foreground: oklch(0.9 0.09 90);
+
+  --destructive: oklch(0.7 0.19 25);
+  --destructive-foreground: oklch(0.98 0.01 250);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.65 0.17 264);
+
+  --gold: oklch(0.82 0.15 86);
+  --gold-foreground: oklch(0.24 0.05 262);
 
   --color-primary: var(--primary);
-  --color-primary-dark: oklch(0.62 0.13 163);
+  --color-primary-dark: oklch(0.55 0.16 262);
   --color-primary-light: var(--accent);
 }
 
@@ -78,6 +104,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
@@ -112,4 +140,29 @@
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: 9999px;
+}
+
+/*
+ * Soft Cebu-toned gradient mesh for the landing page — airy blue and gold
+ * glows rather than a busy texture. Adapts to light/dark via tokens.
+ */
+.bg-landing {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(
+      45% 40% at 12% 4%,
+      color-mix(in oklch, var(--primary) 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 38% at 92% 8%,
+      color-mix(in oklch, var(--gold) 16%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      55% 50% at 50% 108%,
+      color-mix(in oklch, var(--primary) 12%, transparent),
+      transparent 70%
+    );
+  background-repeat: no-repeat;
 }

@@ -38,7 +38,7 @@ export default function PlanResults() {
   const hasJourney = result !== null && origin && destination;
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 px-4 pb-12 pt-6">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-12 pt-6">
       <Link
         href="/"
         className="mb-4 inline-flex min-h-9 items-center gap-1.5 text-sm font-medium text-primary hover:underline"

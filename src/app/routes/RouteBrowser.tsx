@@ -41,7 +41,7 @@ export default function RouteBrowser() {
   ).length;
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 px-4 pb-12 pt-6">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-12 pt-6">
       <h1 className="text-2xl font-bold tracking-tight text-foreground">
         Routes
       </h1>
@@ -61,7 +61,7 @@ export default function RouteBrowser() {
           contribute.
         </p>
       ) : (
-        <ul className="mt-5 flex flex-col gap-3">
+        <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visibleRoutes.map((route) => (
             <li key={route.id}>
               <RouteCard route={route} />

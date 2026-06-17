@@ -62,7 +62,7 @@ export default async function RouteDetailPage({
   const path = getRouteGeometry(route.id);
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 px-4 pb-12 pt-6">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-12 pt-6">
       <Link
         href="/routes"
         className="mb-4 inline-flex min-h-9 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
@@ -92,24 +92,30 @@ export default async function RouteDetailPage({
 
       {route.unverified && <UnverifiedSourceNotice route={route} />}
 
-      <RouteFactsGrid route={route} />
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+        <div>
+          <RouteFactsGrid route={route} />
 
-      {route.schedule && <RouteSchedule schedule={route.schedule} />}
+          {route.schedule && <RouteSchedule schedule={route.schedule} />}
 
-      <div className="mt-5 overflow-hidden rounded-xl border">
-        <RouteMap stops={orderedStops} color={config.hex} path={path} />
+          <div className="mt-5 overflow-hidden rounded-xl border">
+            <RouteMap stops={orderedStops} color={config.hex} path={path} />
+          </div>
+        </div>
+
+        <div className="mt-6 lg:mt-4">
+          <h2 className="text-base font-semibold text-foreground">
+            Stops ({orderedStops.length})
+          </h2>
+          <StopSequenceList stops={orderedStops} mode={route.mode} />
+
+          <p className="text-xs text-muted-foreground">
+            {route.unverified
+              ? `Imported ${route.verified_date}, not yet field-verified.`
+              : `Data last verified ${route.verified_date}.`}
+          </p>
+        </div>
       </div>
-
-      <h2 className="mt-6 text-base font-semibold text-foreground">
-        Stops ({orderedStops.length})
-      </h2>
-      <StopSequenceList stops={orderedStops} mode={route.mode} />
-
-      <p className="text-xs text-muted-foreground">
-        {route.unverified
-          ? `Imported ${route.verified_date}, not yet field-verified.`
-          : `Data last verified ${route.verified_date}.`}
-      </p>
     </main>
   );
 }

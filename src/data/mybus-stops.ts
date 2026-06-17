@@ -32,7 +32,7 @@ export const myBusStops: Stop[] = [
   { id: "mybus-city-di-mare-srp", name: "City di Mare SRP", lat: 10.266751, lng: 123.877444, municipality: "Cebu City", type: "street_stop" },
   { id: "mybus-nustar", name: "NuStar", lat: 10.271634, lng: 123.88057, municipality: "Cebu City", type: "street_stop" },
   { id: "mybus-sm-seaside", name: "SM Seaside", lat: 10.2787, lng: 123.8795, municipality: "Cebu City", type: "terminal" },
-  { id: "mybus-malacanang-sa-sugbo", name: "Malacañang sa Sugbo", lat: 10.2945, lng: 123.912, municipality: "Cebu City", type: "street_stop" },
+  { id: "mybus-malacanang-sa-sugbo", name: "Malacañang sa Sugbo", lat: 10.288, lng: 123.9015, municipality: "Cebu City", type: "street_stop" },
   { id: "mybus-compania-maritima", name: "Compania Maritima", lat: 10.291527, lng: 123.902232, municipality: "Cebu City", type: "street_stop" },
   { id: "mybus-robinsons-galleria", name: "Robinsons Galleria Cebu", lat: 10.303866, lng: 123.911366, municipality: "Cebu City", type: "street_stop" },
   { id: "mybus-sm-city-cebu", name: "SM City Cebu", lat: 10.312732, lng: 123.916481, municipality: "Cebu City", type: "terminal" },
