@@ -2,27 +2,16 @@
 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import BasemapSwitcher from "@/components/map/BasemapSwitcher";
 import {
-  MAP_DEFAULT_CENTER,
-  MAP_DEFAULT_ZOOM,
-  OSM_ATTRIBUTION,
-  OSM_TILE_URL,
-} from "@/lib/constants";
+  applyBasemap,
+  DEFAULT_BASEMAP_ID,
+  getBasemap,
+  rasterStyle,
+} from "@/lib/basemaps";
+import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM } from "@/lib/constants";
 import type { NetworkLayer } from "@/components/map/NetworkMap";
-
-const OSM_RASTER_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: "raster",
-      tiles: [OSM_TILE_URL],
-      tileSize: 256,
-      attribution: OSM_ATTRIBUTION,
-    },
-  },
-  layers: [{ id: "osm", type: "raster", source: "osm" }],
-};
 
 const layerId = (routeId: string) => `route-${routeId}`;
 
@@ -36,13 +25,14 @@ interface Props {
 export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [basemapId, setBasemapId] = useState(DEFAULT_BASEMAP_ID);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: OSM_RASTER_STYLE,
+      style: rasterStyle(getBasemap(DEFAULT_BASEMAP_ID)),
       center: MAP_DEFAULT_CENTER,
       zoom: MAP_DEFAULT_ZOOM,
       attributionControl: { compact: true },
@@ -125,12 +115,22 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
     else map.once("idle", apply);
   }, [hidden, layers]);
 
+  const handleBasemapChange = (id: string) => {
+    setBasemapId(id);
+    const map = mapRef.current;
+    if (map?.isStyleLoaded()) applyBasemap(map, getBasemap(id));
+    else map?.once("idle", () => applyBasemap(map, getBasemap(id)));
+  };
+
   return (
-    <div
-      ref={containerRef}
-      className="h-[60vh] min-h-80 w-full"
-      role="img"
-      aria-label="Map of the MyBus network"
-    />
+    <div className="relative h-[60vh] min-h-80 w-full">
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="img"
+        aria-label="Map of the MyBus network"
+      />
+      <BasemapSwitcher value={basemapId} onChange={handleBasemapChange} />
+    </div>
   );
 }

@@ -16,13 +16,57 @@ const coordOf = new Map(myBusStops.map((s) => [s.id, [s.lng, s.lat] as const]));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const round = (n: number) => Number(n.toFixed(5));
 
+// Perpendicular distance (in degrees) of point p from segment a–b.
+function perpDistance(
+  p: [number, number],
+  a: [number, number],
+  b: [number, number]
+): number {
+  const [px, py] = p;
+  const [ax, ay] = a;
+  const [bx, by] = b;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+  const t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+  const clamped = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (ax + clamped * dx), py - (ay + clamped * dy));
+}
+
+/**
+ * Douglas–Peucker with a ~3 m tolerance: keeps the road shape exact while
+ * dropping redundant collinear points OSRM returns on straight stretches.
+ */
+function simplify(
+  points: [number, number][],
+  epsilon = 0.00003
+): [number, number][] {
+  if (points.length < 3) return points;
+  let maxDist = 0;
+  let index = 0;
+  for (let i = 1; i < points.length - 1; i++) {
+    const dist = perpDistance(points[i], points[0], points[points.length - 1]);
+    if (dist > maxDist) {
+      maxDist = dist;
+      index = i;
+    }
+  }
+  if (maxDist <= epsilon) {
+    return [points[0], points[points.length - 1]];
+  }
+  const left = simplify(points.slice(0, index + 1), epsilon);
+  const right = simplify(points.slice(index), epsilon);
+  return [...left.slice(0, -1), ...right];
+}
+
 async function geometryFor(stopIds: string[]): Promise<[number, number][]> {
   const points = stopIds.map((id) => coordOf.get(id)!);
   const straight = points.map(([lng, lat]) => [round(lng), round(lat)] as [number, number]);
   const path = points.map(([lng, lat]) => `${lng},${lat}`).join(";");
   try {
     const res = await fetch(
-      `${OSRM}/${path}?overview=simplified&geometries=geojson`,
+      `${OSRM}/${path}?overview=full&geometries=geojson`,
       { headers: { "User-Agent": "komyut-ta-bai/0.1 (transit research)" } }
     );
     const json = (await res.json()) as {
@@ -33,9 +77,10 @@ async function geometryFor(stopIds: string[]): Promise<[number, number][]> {
       console.warn(`  OSRM ${json.code} — using straight line`);
       return straight;
     }
-    return json.routes[0].geometry.coordinates.map(
+    const full = json.routes[0].geometry.coordinates.map(
       ([lng, lat]) => [round(lng), round(lat)] as [number, number]
     );
+    return simplify(full);
   } catch (error) {
     console.warn(`  OSRM error (${String(error)}) — using straight line`);
     return straight;

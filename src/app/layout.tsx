@@ -51,9 +51,9 @@ export default function RootLayout({
         >
           <OfflineIndicator />
           <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
-            <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-4">
+            <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
               <Link href="/" className="flex items-center gap-2 font-bold">
-                <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+                <span className="grid size-8 place-items-center rounded-lg bg-gold text-gold-foreground">
                   <Bus className="size-5" />
                 </span>
                 <span className="tracking-tight">Komyut ta Bai</span>

@@ -11,7 +11,7 @@ export default function PlanPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-16 text-center text-muted-foreground">
+        <main className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 py-16 text-center text-muted-foreground">
           <Loader2 className="size-6 animate-spin text-primary" />
           <p className="mt-3 text-sm">Planning your journey…</p>
         </main>
