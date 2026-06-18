@@ -8,6 +8,8 @@ import JourneySummaryCard from "@/components/plan/JourneySummaryCard";
 import LegRow from "@/components/plan/LegRow";
 import NoRouteFound from "@/components/plan/NoRouteFound";
 import PreferenceToggle from "@/components/plan/PreferenceToggle";
+import ServiceWarning from "@/components/plan/ServiceWarning";
+import TransferFilter, { type MaxTransfers } from "@/components/plan/TransferFilter";
 import { getStop } from "@/lib/catalog";
 import { planJourney } from "@/lib/planner";
 import type { Preference } from "@/lib/types";
@@ -19,6 +21,8 @@ export default function PlanResults() {
   const destinationId = searchParams.get("to") ?? "";
   const preference: Preference =
     searchParams.get("pref") === "cheapest" ? "cheapest" : "fastest";
+  const maxTransfers: MaxTransfers =
+    (searchParams.get("max_transfers") as MaxTransfers) ?? "any";
 
   const origin = getStop(originId);
   const destination = getStop(destinationId);
@@ -32,10 +36,29 @@ export default function PlanResults() {
   );
 
   const handlePreferenceChange = (next: Preference) => {
-    router.replace(`/plan?from=${originId}&to=${destinationId}&pref=${next}`);
+    router.replace(
+      `/plan?from=${originId}&to=${destinationId}&pref=${next}&max_transfers=${maxTransfers}`
+    );
   };
 
+  const handleTransferFilterChange = (next: MaxTransfers) => {
+    router.replace(
+      `/plan?from=${originId}&to=${destinationId}&pref=${preference}&max_transfers=${next}`
+    );
+  };
+
+  const transitLegs = result?.legs.filter((l) => l.mode !== "transfer") ?? [];
+  const rideCount = transitLegs.length;
+
+  const transfersAllowed =
+    maxTransfers === "any"
+      ? true
+      : maxTransfers === "1"
+        ? rideCount <= 2
+        : rideCount <= 1;
+
   const hasJourney = result !== null && origin && destination;
+  const blockedByFilter = hasJourney && !transfersAllowed;
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-12 pt-6">
@@ -54,6 +77,7 @@ export default function PlanResults() {
       </h1>
 
       <PreferenceToggle value={preference} onChange={handlePreferenceChange} />
+      <TransferFilter value={maxTransfers} onChange={handleTransferFilterChange} />
 
       {!hasJourney ? (
         <NoRouteFound />
@@ -62,9 +86,25 @@ export default function PlanResults() {
           You&apos;re already there, bai! Origin and destination are the same
           stop.
         </p>
+      ) : blockedByFilter ? (
+        <div className="mt-6 rounded-xl border border-dashed p-6 text-center">
+          <p className="text-sm font-semibold text-foreground">
+            No {maxTransfers === "0" ? "direct" : "low-transfer"} route found
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            The best route uses {rideCount} ride
+            {rideCount !== 1 ? "s" : ""}. Try relaxing the transfer filter.
+          </p>
+        </div>
       ) : (
         <>
-          <JourneySummaryCard result={result} />
+          <JourneySummaryCard
+            result={result}
+            origin={origin}
+            destination={destination}
+          />
+
+          <ServiceWarning legs={result.legs} />
 
           <ol className="mt-6">
             {result.legs.map((leg, index) => (
