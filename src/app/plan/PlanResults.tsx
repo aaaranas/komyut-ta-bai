@@ -3,8 +3,15 @@
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import JourneyMap from "@/components/plan/JourneyMap";
+
+const JourneyMap = dynamic(() => import("@/components/plan/JourneyMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="mt-4 h-56 w-full animate-pulse rounded-2xl border bg-muted" />
+  ),
+});
 import JourneySummaryCard from "@/components/plan/JourneySummaryCard";
 import LegRow from "@/components/plan/LegRow";
 import NoRouteFound from "@/components/plan/NoRouteFound";
