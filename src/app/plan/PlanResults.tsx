@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
+import JourneyMap from "@/components/plan/JourneyMap";
 import JourneySummaryCard from "@/components/plan/JourneySummaryCard";
 import LegRow from "@/components/plan/LegRow";
 import NoRouteFound from "@/components/plan/NoRouteFound";
@@ -103,6 +104,8 @@ export default function PlanResults() {
             origin={origin}
             destination={destination}
           />
+
+          <JourneyMap result={result} />
 
           <ServiceWarning legs={result.legs} />
 
