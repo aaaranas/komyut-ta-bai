@@ -1,3 +1,5 @@
+import { jeepneyRoutes as cityJeepneyRoutes } from "@/data/generated/jeepney-routes";
+import { jeepneyStops as cityJeepneyStops } from "@/data/generated/jeepney-stops";
 import { myBusGeometry } from "@/data/generated/mybus-geometry";
 import { jeepneyRoutes, jeepneyStops } from "@/data/jeepneys";
 import { myBusRoutes } from "@/data/mybus-routes";
@@ -10,16 +12,24 @@ import type { Route, Stop, Transfer } from "@/lib/types";
 
 /**
  * Single access point for the transit dataset: merges the hand-curated
- * corridors, MyBus, and the verified jeepney/e-jeepney routes (which share
- * stop ids at common landmarks), and provides indexed lookups so callers
- * never build their own.
+ * corridors, MyBus, the verified jeepney/e-jeepney routes (which share stop
+ * ids at common landmarks), and the generated (unverified) Cebu City jeepney
+ * network scraped from cebujeepneys.weebly.com and geocoded via OSM Nominatim
+ * (ids namespaced under "cj-"). Provides indexed lookups so callers never
+ * build their own.
  */
 
-export const stops: Stop[] = [...curatedStops, ...myBusStops, ...jeepneyStops];
+export const stops: Stop[] = [
+  ...curatedStops,
+  ...myBusStops,
+  ...jeepneyStops,
+  ...cityJeepneyStops,
+];
 export const routes: Route[] = [
   ...curatedRoutes,
   ...myBusRoutes,
   ...jeepneyRoutes,
+  ...cityJeepneyRoutes,
 ];
 export const transfers: Transfer[] = [...curatedTransfers];
 export type { Route, Stop, Transfer };
