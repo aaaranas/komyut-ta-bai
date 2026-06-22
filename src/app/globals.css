@@ -4,83 +4,83 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Palette built on the official colors of Cebu Province — blue, gold, red,
- * and white — balanced with neutral grays. Blue leads (primary actions,
- * header, hero); gold is the brand mark and warm interaction accent; red is
- * reserved for alerts; white/neutral carry the surfaces.
+ * "Island & sea" palette inspired by Cebu's coast and ferries — ocean teal
+ * leads (primary actions, header, hero), warm sand gold is the brand mark and
+ * gold accent, coral is reserved for alerts, and warm white/neutral grays
+ * carry the surfaces. Soft aqua tints handle hover/active states.
  */
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.99 0.004 250);
-  --foreground: oklch(0.21 0.03 262);
+  --background: oklch(0.99 0.005 180);
+  --foreground: oklch(0.22 0.02 215);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.03 262);
+  --card-foreground: oklch(0.22 0.02 215);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.03 262);
+  --popover-foreground: oklch(0.22 0.02 215);
 
-  /* Cebu blue */
-  --primary: oklch(0.48 0.18 262);
-  --primary-foreground: oklch(0.98 0.01 250);
+  /* Cebu ocean teal */
+  --primary: oklch(0.56 0.1 184);
+  --primary-foreground: oklch(0.99 0.02 190);
 
-  --secondary: oklch(0.96 0.01 255);
-  --secondary-foreground: oklch(0.3 0.03 262);
-  --muted: oklch(0.97 0.008 255);
-  --muted-foreground: oklch(0.52 0.02 258);
+  --secondary: oklch(0.96 0.012 195);
+  --secondary-foreground: oklch(0.3 0.03 200);
+  --muted: oklch(0.97 0.01 195);
+  --muted-foreground: oklch(0.52 0.02 200);
 
-  /* Soft gold — warm interaction accent (hover/active surfaces) */
-  --accent: oklch(0.95 0.06 90);
-  --accent-foreground: oklch(0.42 0.08 75);
+  /* Soft aqua — cool interaction accent (hover/active surfaces) */
+  --accent: oklch(0.95 0.035 190);
+  --accent-foreground: oklch(0.42 0.07 195);
 
-  /* Cebu red */
-  --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.98 0.01 250);
+  /* Coral — alerts */
+  --destructive: oklch(0.66 0.17 33);
+  --destructive-foreground: oklch(0.99 0.01 60);
 
-  --border: oklch(0.91 0.01 255);
-  --input: oklch(0.91 0.01 255);
-  --ring: oklch(0.48 0.18 262);
+  --border: oklch(0.91 0.012 200);
+  --input: oklch(0.91 0.012 200);
+  --ring: oklch(0.56 0.1 184);
 
-  /* Vivid Cebu gold for the brand mark (navy glyph on gold = flag motif) */
-  --gold: oklch(0.8 0.15 86);
-  --gold-foreground: oklch(0.26 0.06 262);
+  /* Warm sand gold for the brand mark (deep-teal glyph on gold = sea & sand) */
+  --gold: oklch(0.82 0.13 88);
+  --gold-foreground: oklch(0.3 0.05 200);
 
   /* Legacy aliases so any unmigrated utility still resolves. */
   --color-primary: var(--primary);
-  --color-primary-dark: oklch(0.4 0.17 262);
+  --color-primary-dark: oklch(0.46 0.09 185);
   --color-primary-light: var(--accent);
 }
 
 .dark {
-  --background: oklch(0.18 0.02 262);
-  --foreground: oklch(0.96 0.01 250);
-  --card: oklch(0.21 0.025 262);
-  --card-foreground: oklch(0.96 0.01 250);
-  --popover: oklch(0.21 0.025 262);
-  --popover-foreground: oklch(0.96 0.01 250);
+  --background: oklch(0.2 0.02 210);
+  --foreground: oklch(0.96 0.01 190);
+  --card: oklch(0.23 0.022 208);
+  --card-foreground: oklch(0.96 0.01 190);
+  --popover: oklch(0.23 0.022 208);
+  --popover-foreground: oklch(0.96 0.01 190);
 
-  --primary: oklch(0.65 0.17 264);
-  --primary-foreground: oklch(0.99 0.01 250);
+  --primary: oklch(0.66 0.12 185);
+  --primary-foreground: oklch(0.99 0.02 190);
 
-  --secondary: oklch(0.28 0.02 262);
-  --secondary-foreground: oklch(0.96 0.01 250);
-  --muted: oklch(0.28 0.02 262);
-  --muted-foreground: oklch(0.71 0.02 258);
+  --secondary: oklch(0.3 0.02 205);
+  --secondary-foreground: oklch(0.96 0.01 190);
+  --muted: oklch(0.3 0.02 205);
+  --muted-foreground: oklch(0.72 0.02 198);
 
-  --accent: oklch(0.32 0.05 88);
-  --accent-foreground: oklch(0.9 0.09 90);
+  --accent: oklch(0.34 0.04 190);
+  --accent-foreground: oklch(0.9 0.06 188);
 
-  --destructive: oklch(0.7 0.19 25);
-  --destructive-foreground: oklch(0.98 0.01 250);
+  --destructive: oklch(0.7 0.16 33);
+  --destructive-foreground: oklch(0.99 0.01 60);
 
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.17 264);
+  --ring: oklch(0.66 0.12 185);
 
-  --gold: oklch(0.82 0.15 86);
-  --gold-foreground: oklch(0.24 0.05 262);
+  --gold: oklch(0.83 0.13 88);
+  --gold-foreground: oklch(0.24 0.04 205);
 
   --color-primary: var(--primary);
-  --color-primary-dark: oklch(0.55 0.16 262);
+  --color-primary-dark: oklch(0.56 0.1 185);
   --color-primary-light: var(--accent);
 }
 
