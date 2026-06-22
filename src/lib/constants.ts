@@ -141,4 +141,8 @@ export const HUB_STOP_TYPES: StopType[] = ["terminal", "port"];
 export const MAP_DEFAULT_CENTER: [number, number] = [123.8854, 10.3157];
 export const MAP_DEFAULT_ZOOM = 10;
 
+/** OpenStreetMap raster tiles — free, no API key. Used as the journey map basemap. */
+export const OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+export const OSM_ATTRIBUTION = "© OpenStreetMap contributors";
+
 export const INSTALL_PROMPT_DISMISS_KEY = "komyut-install-dismissed";
