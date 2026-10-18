@@ -1,110 +1,105 @@
 /**
- * Data integrity checks for the transit dataset (curated + generated).
+ * Data integrity checks for the curated transit dataset (Objective 1).
  * Run with: npm run validate. Exits non-zero if any check fails.
  */
-import { routes, stops, transfers } from "../src/lib/catalog";
-import { CEBU_BOUNDS } from "../src/lib/constants";
-import type { Route, Stop, Transfer } from "../src/lib/types";
-import { isWithinCebu } from "../src/lib/utils/geo";
+import { CEBU_BOUNDS, isWithinCebu } from "../src/core/transit/geo";
+import { normalizeNetwork } from "../src/core/transit/normalize";
+import { parseClock } from "../src/core/transit/time";
+import type { Network } from "../src/core/transit/types";
+import { routeRecords, stopRecords, transferRecords } from "../src/data";
+import type { RouteRecord, StopRecord, TransferRecord } from "../src/data/schema";
 
-function checkDuplicateStopIds(allStops: Stop[]): string[] {
-  const errors: string[] = [];
+const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+function duplicates(ids: string[], kind: string): string[] {
   const seen = new Set<string>();
-  for (const stop of allStops) {
-    if (seen.has(stop.id)) errors.push(`Duplicate stop id: ${stop.id}`);
-    seen.add(stop.id);
-  }
-  return errors;
+  return ids.flatMap((id) => {
+    if (seen.has(id)) return [`Duplicate ${kind} id: ${id}`];
+    seen.add(id);
+    return [];
+  });
 }
 
-function checkDuplicateRouteIds(allRoutes: Route[]): string[] {
-  const errors: string[] = [];
-  const seen = new Set<string>();
-  for (const route of allRoutes) {
-    if (seen.has(route.id)) errors.push(`Duplicate route id: ${route.id}`);
-    seen.add(route.id);
-  }
-  return errors;
-}
-
-function checkStopsWithinCebu(allStops: Stop[]): string[] {
-  const errors: string[] = [];
-  for (const stop of allStops) {
-    if (!isWithinCebu(stop.lat, stop.lng)) {
-      errors.push(
+function checkStops(stops: StopRecord[]): string[] {
+  return stops
+    .filter((stop) => !isWithinCebu(stop))
+    .map(
+      (stop) =>
         `Stop "${stop.id}" at (${stop.lat}, ${stop.lng}) is outside Cebu ` +
-          `(${CEBU_BOUNDS.minLat}–${CEBU_BOUNDS.maxLat}°N, ` +
-          `${CEBU_BOUNDS.minLng}–${CEBU_BOUNDS.maxLng}°E)`
-      );
-    }
-  }
-  return errors;
+        `(${CEBU_BOUNDS.minLat}–${CEBU_BOUNDS.maxLat}°N, ${CEBU_BOUNDS.minLng}–${CEBU_BOUNDS.maxLng}°E)`
+    );
 }
 
-function checkRouteShape(route: Route, stopIds: Set<string>): string[] {
+function checkRoute(route: RouteRecord, stopIds: Set<string>): string[] {
   const errors: string[] = [];
-  if (route.stops.length < 2) {
-    errors.push(`Route "${route.id}" has fewer than 2 stops`);
-  }
-  const seenSequences = new Set<number>();
+  const where = `Route "${route.id}"`;
+  if (route.stops.length < 2) errors.push(`${where} has fewer than 2 stops`);
+  const sequences = new Set<number>();
   for (const { stop_id, sequence } of route.stops) {
-    if (!stopIds.has(stop_id)) {
-      errors.push(`Route "${route.id}" references unknown stop "${stop_id}"`);
-    }
-    if (seenSequences.has(sequence)) {
-      errors.push(`Route "${route.id}" has duplicate sequence ${sequence}`);
-    }
-    seenSequences.add(sequence);
+    if (!stopIds.has(stop_id)) errors.push(`${where} references unknown stop "${stop_id}"`);
+    if (sequences.has(sequence)) errors.push(`${where} has duplicate sequence ${sequence}`);
+    sequences.add(sequence);
   }
-  return errors;
-}
-
-function checkRouteFares(route: Route): string[] {
-  const errors: string[] = [];
-  if (route.fare.base_fare < 0) {
-    errors.push(`Route "${route.id}" has a negative base fare`);
+  if (route.fare.base_fare < 0) errors.push(`${where} has a negative base fare`);
+  if ("per_km" in route.fare && route.fare.per_km < 0) errors.push(`${where} has a negative per-km fare`);
+  if (route.duration_mins <= 0) errors.push(`${where} has a non-positive duration`);
+  if (route.frequency_mins <= 0) errors.push(`${where} has a non-positive headway`);
+  for (const clock of [route.first_trip, route.last_trip]) {
+    if (!CLOCK.test(clock)) errors.push(`${where} has malformed time "${clock}"`);
   }
-  if ("per_km" in route.fare && route.fare.per_km < 0) {
-    errors.push(`Route "${route.id}" has a negative per-km fare`);
+  for (const window of route.schedule ?? []) {
+    for (const clock of [window.first_trip, window.last_trip]) {
+      if (!CLOCK.test(clock)) errors.push(`${where} schedule has malformed time "${clock}"`);
+    }
+  }
+  for (const set of route.departures ?? []) {
+    for (const clock of set.times) {
+      if (!CLOCK.test(clock)) errors.push(`${where} has malformed departure "${clock}"`);
+    }
   }
   if (route.unverified && !route.source_url?.startsWith("https://")) {
-    errors.push(`Unverified route "${route.id}" has no source URL`);
+    errors.push(`Unverified ${where} has no source URL`);
   }
   return errors;
 }
 
-function checkTransfers(
-  allTransfers: Transfer[],
-  stopIds: Set<string>
-): string[] {
-  const errors: string[] = [];
-  for (const transfer of allTransfers) {
-    for (const stopId of [transfer.from_stop_id, transfer.to_stop_id]) {
-      if (!stopIds.has(stopId)) {
-        errors.push(`Transfer references unknown stop "${stopId}"`);
+function checkTransfers(transfers: TransferRecord[], stopIds: Set<string>): string[] {
+  return transfers.flatMap((transfer) => [
+    ...[transfer.from_stop_id, transfer.to_stop_id]
+      .filter((id) => !stopIds.has(id))
+      .map((id) => `Transfer references unknown stop "${id}"`),
+    ...(transfer.walk_minutes < 0
+      ? [`Transfer ${transfer.from_stop_id} → ${transfer.to_stop_id} has negative time`]
+      : []),
+  ]);
+}
+
+/** Normalized service windows must have positive headways and sane hours. */
+function checkNormalized(network: Network): string[] {
+  return network.routes.flatMap((route) => {
+    if (route.service.kind !== "frequency") return [];
+    return route.service.windows.flatMap((window) => {
+      const errors: string[] = [];
+      if (!(window.headway_mins > 0)) errors.push(`Route "${route.id}" has a window without a headway`);
+      if (parseClock(window.start) === parseClock(window.end)) {
+        errors.push(`Route "${route.id}" has a zero-length service window`);
       }
-    }
-    if (transfer.walk_minutes < 0) {
-      errors.push(
-        `Transfer ${transfer.from_stop_id} → ${transfer.to_stop_id} has negative walk time`
-      );
-    }
-  }
-  return errors;
+      return errors;
+    });
+  });
 }
 
 function main(): void {
-  const stopIds = new Set(stops.map((stop) => stop.id));
+  const stopIds = new Set(stopRecords.map((stop) => stop.id));
   const errors = [
-    ...checkDuplicateStopIds(stops),
-    ...checkDuplicateRouteIds(routes),
-    ...checkStopsWithinCebu(stops),
-    ...routes.flatMap((route) => [
-      ...checkRouteShape(route, stopIds),
-      ...checkRouteFares(route),
-    ]),
-    ...checkTransfers(transfers, stopIds),
+    ...duplicates(stopRecords.map((s) => s.id), "stop"),
+    ...duplicates(routeRecords.map((r) => r.id), "route"),
+    ...checkStops(stopRecords),
+    ...routeRecords.flatMap((route) => checkRoute(route, stopIds)),
+    ...checkTransfers(transferRecords, stopIds),
   ];
+  const network = normalizeNetwork(stopRecords, routeRecords, transferRecords);
+  errors.push(...checkNormalized(network));
 
   if (errors.length > 0) {
     console.error(`✗ Data validation failed with ${errors.length} error(s):`);
@@ -112,9 +107,13 @@ function main(): void {
     process.exit(1);
   }
 
+  const proximity = network.transfers.filter((t) => t.source === "proximity").length;
+  const oneWay = network.routes.filter((r) => r.direction === "one_way").length;
+  const estimates = network.routes.filter((r) => r.service.evidence === "estimate").length;
   console.log(
-    `✓ Data valid: ${stops.length} stops, ${routes.length} routes, ` +
-      `${transfers.length} transfers`
+    `✓ Data valid: ${network.stops.length} stops, ${network.routes.length} routes ` +
+      `(${oneWay} one-way, ${estimates} with estimated headways), ` +
+      `${transferRecords.length} curated transfers + ${proximity} generated walking links`
   );
 }
 

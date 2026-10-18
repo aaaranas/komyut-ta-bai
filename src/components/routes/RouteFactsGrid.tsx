@@ -1,18 +1,11 @@
-import { CalendarClock, Clock, Coins, Timer } from "lucide-react";
+import { ArrowLeftRight, CalendarClock, Clock, Coins, Timer } from "lucide-react";
 import type { ComponentType } from "react";
-import type { Route } from "@/lib/types";
-import { describeFare } from "@/lib/utils/fare";
-import { formatDuration } from "@/lib/utils/time";
+import { describeFare } from "@/core/transit/fare";
+import { headwaySummary, serviceHours } from "@/core/transit/service";
+import { formatDuration } from "@/core/transit/time";
+import type { Route } from "@/core/transit/types";
 
-function Fact({
-  Icon,
-  label,
-  value,
-}: {
-  Icon: ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-}) {
+function Fact({ Icon, label, value }: { Icon: ComponentType<{ className?: string }>; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2.5 rounded-lg border bg-card p-3">
       <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -24,24 +17,23 @@ function Fact({
   );
 }
 
+const EVIDENCE_LABEL = {
+  published: "published / field-checked",
+  observed: "from observed rides",
+  estimate: "estimate — not confirmed",
+} as const;
+
 export default function RouteFactsGrid({ route }: { route: Route }) {
   return (
     <dl className="mt-4 grid grid-cols-2 gap-2.5">
-      <Fact Icon={Coins} label="Fare" value={describeFare(route)} />
+      <Fact Icon={Coins} label="Fare" value={describeFare(route.fare)} />
+      <Fact Icon={Clock} label="End-to-end time" value={formatDuration(route.duration_mins)} />
+      <Fact Icon={Timer} label={`Headway (${EVIDENCE_LABEL[route.service.evidence]})`} value={headwaySummary(route)} />
+      <Fact Icon={CalendarClock} label="Service hours" value={serviceHours(route)} />
       <Fact
-        Icon={Clock}
-        label="Travel time"
-        value={formatDuration(route.duration_mins)}
-      />
-      <Fact
-        Icon={Timer}
-        label="Frequency"
-        value={`every ${route.frequency_mins} min`}
-      />
-      <Fact
-        Icon={CalendarClock}
-        label="Service hours"
-        value={`${route.first_trip}–${route.last_trip}`}
+        Icon={ArrowLeftRight}
+        label="Direction"
+        value={route.direction === "one_way" ? "This direction only" : "Runs both ways"}
       />
     </dl>
   );

@@ -1,6 +1,6 @@
-import StopTypeBadge from "@/components/StopTypeBadge";
-import { MODE_CONFIG } from "@/lib/constants";
-import type { Mode, Stop } from "@/lib/types";
+import StopTypeBadge from "@/components/common/StopTypeBadge";
+import type { Mode, Stop } from "@/core/transit/types";
+import { MODE_CONFIG } from "@/lib/presentation";
 
 export default function StopSequenceList({
   stops,
@@ -13,7 +13,7 @@ export default function StopSequenceList({
   return (
     <ol className="mt-3">
       {stops.map((stop, index) => (
-        <li key={stop.id} className="flex gap-3">
+        <li key={`${stop.id}-${index}`} className="flex gap-3">
           <div className="flex flex-col items-center">
             <div
               className={`mt-1.5 size-3 shrink-0 rounded-full ring-4 ring-background ${config.dot}`}

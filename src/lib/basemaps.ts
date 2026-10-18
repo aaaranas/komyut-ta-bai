@@ -44,6 +44,10 @@ export const BASEMAPS: Basemap[] = [
 
 export const DEFAULT_BASEMAP_ID = "streets";
 
+/** Cebu City center, the default view before fitting to content. */
+export const MAP_DEFAULT_CENTER: [number, number] = [123.8854, 10.3157];
+export const MAP_DEFAULT_ZOOM = 10;
+
 const SOURCE_ID = "basemap";
 const LAYER_ID = "basemap";
 

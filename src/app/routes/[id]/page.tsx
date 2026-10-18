@@ -2,14 +2,15 @@ import { ArrowLeft, ExternalLink, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import RouteMap from "@/components/RouteMap";
+import UnverifiedBadge from "@/components/common/UnverifiedBadge";
+import RouteMap from "@/components/map/RouteMap";
 import RouteFactsGrid from "@/components/routes/RouteFactsGrid";
+import RouteLiveStatus from "@/components/routes/RouteLiveStatus";
 import RouteSchedule from "@/components/routes/RouteSchedule";
 import StopSequenceList from "@/components/routes/StopSequenceList";
-import UnverifiedBadge from "@/components/routes/UnverifiedBadge";
-import { getRoute, getRouteGeometry, orderedStopsOf, routes } from "@/lib/catalog";
-import { MODE_CONFIG } from "@/lib/constants";
-import type { Route } from "@/lib/types";
+import { getRoute, getRouteGeometry, orderedStopsOf, routes } from "@/core/transit/catalog";
+import type { Route } from "@/core/transit/types";
+import { MODE_CONFIG } from "@/lib/presentation";
 
 export function generateStaticParams() {
   return routes.map((route) => ({ id: route.id }));
@@ -29,9 +30,9 @@ function UnverifiedSourceNotice({ route }: { route: Route }) {
       <TriangleAlert className="mt-0.5 size-4 shrink-0" />
       <p>
         Unverified route imported from{" "}
-        {route.source_url ? (
+        {route.provenance.source_url ? (
           <a
-            href={route.source_url}
+            href={route.provenance.source_url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-0.5 font-medium underline"
@@ -82,7 +83,7 @@ export default async function RouteDetailPage({
             <h1 className="text-xl font-bold tracking-tight text-foreground">
               {route.name}
             </h1>
-            {route.unverified && <UnverifiedBadge />}
+            {route.provenance.status === "unverified" && <UnverifiedBadge />}
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {config.label} · {route.operator}
@@ -90,13 +91,17 @@ export default async function RouteDetailPage({
         </div>
       </div>
 
-      {route.unverified && <UnverifiedSourceNotice route={route} />}
+      {route.provenance.status === "unverified" && <UnverifiedSourceNotice route={route} />}
+      {route.notes && (
+        <p className="mt-3 rounded-xl border bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">{route.notes}</p>
+      )}
 
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
         <div>
           <RouteFactsGrid route={route} />
 
-          {route.schedule && <RouteSchedule schedule={route.schedule} />}
+          <RouteSchedule service={route.service} />
+          <RouteLiveStatus route={route} />
 
           <div className="mt-5 overflow-hidden rounded-xl border">
             <RouteMap stops={orderedStops} color={config.hex} path={path} />
@@ -110,9 +115,9 @@ export default async function RouteDetailPage({
           <StopSequenceList stops={orderedStops} mode={route.mode} />
 
           <p className="text-xs text-muted-foreground">
-            {route.unverified
-              ? `Imported ${route.verified_date}, not yet field-verified.`
-              : `Data last verified ${route.verified_date}.`}
+            {route.provenance.status === "unverified"
+              ? `Imported ${route.provenance.date}, not yet field-verified.`
+              : `Data last verified ${route.provenance.date}.`}
           </p>
         </div>
       </div>

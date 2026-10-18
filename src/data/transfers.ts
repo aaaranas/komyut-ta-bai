@@ -1,7 +1,7 @@
-import type { Transfer } from "@/lib/types";
+import type { TransferRecord } from "@/data/schema";
 
 // Each transfer is walkable in both directions; the graph adds reverse edges.
-export const transfers: Transfer[] = [
+export const transfers: TransferRecord[] = [
   {
     from_stop_id: "csbt",
     to_stop_id: "cnbt",

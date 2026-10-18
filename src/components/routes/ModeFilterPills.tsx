@@ -1,45 +1,15 @@
 "use client";
 
 import { LayoutGrid } from "lucide-react";
-import type { ComponentType } from "react";
-import { MODE_CONFIG } from "@/lib/constants";
-import type { Mode } from "@/lib/types";
+import type { Mode } from "@/core/transit/types";
+import { MODE_CONFIG, MODE_ORDER } from "@/lib/presentation";
 import { cn } from "@/lib/utils";
 
 export type ModeFilter = Mode | "all";
 
-const FILTERS: {
-  value: ModeFilter;
-  label: string;
-  Icon: ComponentType<{ className?: string }>;
-}[] = [
-  { value: "all", label: "All", Icon: LayoutGrid },
-  { value: "bus", label: MODE_CONFIG.bus.label, Icon: MODE_CONFIG.bus.Icon },
-  {
-    value: "mybus",
-    label: MODE_CONFIG.mybus.label,
-    Icon: MODE_CONFIG.mybus.Icon,
-  },
-  {
-    value: "vhire",
-    label: MODE_CONFIG.vhire.label,
-    Icon: MODE_CONFIG.vhire.Icon,
-  },
-  {
-    value: "jeepney",
-    label: MODE_CONFIG.jeepney.label,
-    Icon: MODE_CONFIG.jeepney.Icon,
-  },
-  {
-    value: "mjeepney",
-    label: MODE_CONFIG.mjeepney.label,
-    Icon: MODE_CONFIG.mjeepney.Icon,
-  },
-  {
-    value: "ferry",
-    label: MODE_CONFIG.ferry.label,
-    Icon: MODE_CONFIG.ferry.Icon,
-  },
+const FILTERS = [
+  { value: "all" as ModeFilter, label: "All", Icon: LayoutGrid },
+  ...MODE_ORDER.map((mode) => ({ value: mode as ModeFilter, label: MODE_CONFIG[mode].label, Icon: MODE_CONFIG[mode].Icon })),
 ];
 
 export default function ModeFilterPills({

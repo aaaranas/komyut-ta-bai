@@ -2,9 +2,9 @@
 // Stops derived from src/data/experimental/cebu-city-jeepneys.ts
 // via OSM Nominatim geocoding. Positions are approximate and the
 // routes are unverified; see README "Promoting experimental routes".
-import type { Stop } from "@/lib/types";
+import type { StopRecord } from "@/data/schema";
 
-export const jeepneyStops: Stop[] = [
+export const jeepneyStops: StopRecord[] = [
   {
     "id": "cj-sambag-1",
     "name": "Sambag 1",

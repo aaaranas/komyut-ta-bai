@@ -2,7 +2,7 @@
 
 import { Coins, Zap } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Preference } from "@/lib/types";
+import type { Preference } from "@/core/planner";
 
 export default function PreferenceToggle({
   value,

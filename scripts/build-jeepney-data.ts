@@ -13,7 +13,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { experimentalJeepneyRoutes } from "../src/data/experimental/cebu-city-jeepneys";
-import { haversineKm } from "../src/lib/utils/geo";
+import { haversineKm } from "../src/core/transit/geo";
 
 const CACHE_PATH = join(__dirname, ".geocode-cache.json");
 const OUT_DIR = join(__dirname, "..", "src", "data", "generated");
@@ -282,7 +282,7 @@ async function main() {
     const kept: string[] = [];
     const removed: string[] = [];
     ids.forEach((id, i) => {
-      const km = haversineKm(points[i].lat, points[i].lng, centerLat, centerLng);
+      const km = haversineKm(points[i], { lat: centerLat, lng: centerLng });
       if (km > OUTLIER_KM) removed.push(id);
       else kept.push(id);
     });
@@ -311,7 +311,7 @@ async function main() {
     for (let i = 0; i < ids.length - 1; i++) {
       const a = coordOf(ids[i]);
       const b = coordOf(ids[i + 1]);
-      totalKm += haversineKm(a.lat, a.lng, b.lat, b.lng);
+      totalKm += haversineKm(a, b);
     }
     const source = experimentalJeepneyRoutes.find(
       (r) => r.code === route.code
@@ -353,14 +353,14 @@ async function main() {
   writeFileSync(
     join(OUT_DIR, "jeepney-stops.ts"),
     banner("Stops") +
-      `import type { Stop } from "@/lib/types";\n\n` +
-      `export const jeepneyStops: Stop[] = ${JSON.stringify(finalStops, null, 2)};\n`
+      `import type { StopRecord } from "@/data/schema";\n\n` +
+      `export const jeepneyStops: StopRecord[] = ${JSON.stringify(finalStops, null, 2)};\n`
   );
   writeFileSync(
     join(OUT_DIR, "jeepney-routes.ts"),
     banner("Routes") +
-      `import type { Route } from "@/lib/types";\n\n` +
-      `export const jeepneyRoutes: Route[] = ${JSON.stringify(generatedRoutes, null, 2)};\n`
+      `import type { RouteRecord } from "@/data/schema";\n\n` +
+      `export const jeepneyRoutes: RouteRecord[] = ${JSON.stringify(generatedRoutes, null, 2)};\n`
   );
 
   const resolved = [...allLandmarks.keys()].filter((n) => cache[n]).length;

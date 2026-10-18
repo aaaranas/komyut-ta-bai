@@ -1,4 +1,4 @@
-import type { ExperimentalRoute } from '@/lib/types';
+import type { ExperimentalRoute } from "@/data/schema";
 
 /**
  * EXPERIMENTAL / UNVERIFIED — Cebu City & Mandaue (MI-) jeepney routes

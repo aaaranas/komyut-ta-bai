@@ -8,9 +8,10 @@ import {
   applyBasemap,
   DEFAULT_BASEMAP_ID,
   getBasemap,
+  MAP_DEFAULT_CENTER,
+  MAP_DEFAULT_ZOOM,
   rasterStyle,
 } from "@/lib/basemaps";
-import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM } from "@/lib/constants";
 import type { NetworkLayer } from "@/components/map/NetworkMap";
 
 const layerId = (routeId: string) => `route-${routeId}`;

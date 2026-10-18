@@ -3,9 +3,9 @@ import NetworkMap, {
   type NetworkLayer,
   type NetworkLegendItem,
 } from "@/components/map/NetworkMap";
-import { getRouteGeometry, routes } from "@/lib/catalog";
+import { getRouteGeometry, routes } from "@/core/transit/catalog";
+import { describeFare } from "@/core/transit/fare";
 import { myBusStops } from "@/data/mybus-stops";
-import { describeFare } from "@/lib/utils/fare";
 
 export const metadata: Metadata = {
   title: "MyBus network map — Komyut ta Bai",
@@ -37,7 +37,7 @@ export default function NetworkMapPage() {
       routeNumber: number,
       label: `Route ${number}`,
       color: ROUTE_COLORS[(number - 1) % ROUTE_COLORS.length],
-      fare: describeFare(route),
+      fare: describeFare(route.fare),
     });
   }
 

@@ -1,4 +1,4 @@
-import type { Stop } from "@/lib/types";
+import type { StopRecord } from "@/data/schema";
 
 /**
  * MyBus designated stops across Routes 1–5. Coordinates are from OSM
@@ -7,7 +7,7 @@ import type { Stop } from "@/lib/types";
  * Route endpoints and major interchanges are marked as terminals so they
  * surface as hubs across the app.
  */
-export const myBusStops: Stop[] = [
+export const myBusStops: StopRecord[] = [
   // ── Minglanilla ──
   { id: "mybus-anjo-world", name: "Anjo World", lat: 10.249603, lng: 123.800226, municipality: "Minglanilla", type: "terminal" },
   { id: "mybus-aa-bbq-calajoan", name: "AA BBQ Calajo-an", lat: 10.23969, lng: 123.802568, municipality: "Minglanilla", type: "street_stop" },

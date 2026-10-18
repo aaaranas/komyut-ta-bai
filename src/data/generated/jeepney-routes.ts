@@ -2,9 +2,9 @@
 // Routes derived from src/data/experimental/cebu-city-jeepneys.ts
 // via OSM Nominatim geocoding. Positions are approximate and the
 // routes are unverified; see README "Promoting experimental routes".
-import type { Route } from "@/lib/types";
+import type { RouteRecord } from "@/data/schema";
 
-export const jeepneyRoutes: Route[] = [
+export const jeepneyRoutes: RouteRecord[] = [
   {
     "id": "cj-01b",
     "name": "Jeepney 01B Sambag 1–Pier 2",

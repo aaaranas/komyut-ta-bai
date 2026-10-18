@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
-import { Suspense } from "react";
 import type { Metadata } from "next";
-import PlanResults from "./PlanResults";
+import { Suspense } from "react";
+import PlanView from "@/components/plan/PlanView";
 
 export const metadata: Metadata = {
   title: "Journey plan — Komyut ta Bai",
@@ -17,7 +17,7 @@ export default function PlanPage() {
         </main>
       }
     >
-      <PlanResults />
+      <PlanView />
     </Suspense>
   );
 }

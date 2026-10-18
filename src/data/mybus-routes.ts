@@ -1,4 +1,4 @@
-import type { Route, ServiceWindow } from "@/lib/types";
+import type { RouteRecord, ServiceWindowRecord } from "@/data/schema";
 
 const seq = (ids: string[]) =>
   ids.map((stop_id, index) => ({ stop_id, sequence: index + 1 }));
@@ -13,7 +13,7 @@ const every30 = "every 30 min";
 
 const sched = (
   rows: [days: string, first: string, last: string, freq: string][]
-): ServiceWindow[] =>
+): ServiceWindowRecord[] =>
   rows.map(([days, first_trip, last_trip, frequency]) => ({
     days,
     first_trip,
@@ -25,9 +25,11 @@ const BASE = {
   mode: "mybus" as const,
   operator: "MyBus",
   verified_date: "2026-06-15",
+  // Each direction is its own record, so the graph must not reverse them.
+  direction: "one_way" as const,
 };
 
-export const myBusRoutes: Route[] = [
+export const myBusRoutes: RouteRecord[] = [
   // ── Route 1 ──
   {
     ...BASE,

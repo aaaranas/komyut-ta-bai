@@ -1,4 +1,4 @@
-import type { Route, Stop } from "@/lib/types";
+import type { RouteRecord, StopRecord } from "@/data/schema";
 
 /**
  * Verified jeepney / e-jeepney routes. Stops unique to these routes are
@@ -7,7 +7,7 @@ import type { Route, Stop } from "@/lib/types";
  * "csbt") so the networks connect at those shared landmarks. Coordinates are
  * approximate (good to ~100–300 m) pending field survey.
  */
-export const jeepneyStops: Stop[] = [
+export const jeepneyStops: StopRecord[] = [
   // ── 01K (downtown Cebu City → Mandaue) ──
   { id: "jeep-urgello", name: "Urgello St.", lat: 10.3004, lng: 123.8936, municipality: "Cebu City", type: "street_stop" },
   { id: "jeep-sacred-heart", name: "Sacred Heart Hospital", lat: 10.2992, lng: 123.893, municipality: "Cebu City", type: "street_stop" },
@@ -72,7 +72,7 @@ export const jeepneyStops: Stop[] = [
 const seq = (ids: string[]) =>
   ids.map((stop_id, index) => ({ stop_id, sequence: index + 1 }));
 
-export const jeepneyRoutes: Route[] = [
+export const jeepneyRoutes: RouteRecord[] = [
   {
     id: "jeep-01k-outbound",
     name: "Jeepney 01K · Urgello → Parkmall",
@@ -84,6 +84,7 @@ export const jeepneyRoutes: Route[] = [
     first_trip: "05:00",
     last_trip: "22:00",
     verified_date: "2026-06-16",
+    direction: "one_way",
     stops: seq([
       "jeep-urgello", "jeep-sacred-heart", "jeep-southwestern-u",
       "jeep-elizabeth-mall", "jeep-leon-kilat", "jeep-colon", "jeep-metro-colon",
@@ -104,6 +105,7 @@ export const jeepneyRoutes: Route[] = [
     first_trip: "05:00",
     last_trip: "22:00",
     verified_date: "2026-06-16",
+    direction: "one_way",
     stops: seq([
       "mybus-parkmall", "mybus-chong-hua-hospital", "jeep-ayala-gatewalk",
       "mybus-sm-hypermarket", "mybus-sm-city-cebu", "jeep-gmall",
@@ -125,6 +127,7 @@ export const jeepneyRoutes: Route[] = [
     first_trip: "05:00",
     last_trip: "22:00",
     verified_date: "2026-06-16",
+    direction: "one_way",
     stops: seq([
       "jeep-it-park", "jeep-tesda-7", "jeep-archbishop-reyes",
       "jeep-philhealth-escario", "jeep-vibo-place", "jeep-provincial-capitol",
@@ -148,6 +151,7 @@ export const jeepneyRoutes: Route[] = [
     first_trip: "05:00",
     last_trip: "22:00",
     verified_date: "2026-06-16",
+    direction: "one_way",
     stops: seq([
       "jeep-mary-help", "jeep-gaisano-minglanilla", "jeep-la-nueva",
       "mybus-anjo-world", "mybus-aa-bbq-calajoan", "jeep-arbees-tubod",

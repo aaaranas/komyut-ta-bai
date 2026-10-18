@@ -1,7 +1,7 @@
-import type { Stop } from "@/lib/types";
+import type { StopRecord } from "@/data/schema";
 
 /** Hand-curated, field-verified stops. */
-export const curatedStops: Stop[] = [
+export const curatedStops: StopRecord[] = [
   // ── Southern corridor ──────────────────────────────────────────────
   {
     id: "argao-terminal",

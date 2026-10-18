@@ -45,3 +45,5 @@ public/sw.js
 public/sw.js.map
 public/serwist-*.js
 public/serwist-*.js.map
+# local report store (src/server/store.ts)
+/.data/

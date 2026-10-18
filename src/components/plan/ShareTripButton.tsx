@@ -3,10 +3,11 @@
 import { Download, Share2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MODE_CONFIG } from "@/lib/constants";
-import type { JourneyResult, Stop } from "@/lib/types";
-import { formatFare } from "@/lib/utils/fare";
-import { formatDuration } from "@/lib/utils/time";
+import type { Itinerary } from "@/core/planner";
+import { formatPeso } from "@/core/transit/fare";
+import { formatDuration } from "@/core/transit/time";
+import type { Stop } from "@/core/transit/types";
+import { MODE_CONFIG } from "@/lib/presentation";
 
 const W = 720;
 const H = 400;
@@ -43,7 +44,7 @@ function drawRoundRect(
 function buildCanvas(
   origin: Stop,
   destination: Stop,
-  result: JourneyResult
+  itinerary: Itinerary
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -124,18 +125,14 @@ function buildCanvas(
   ctx.font = "500 13px system-ui, sans-serif";
   ctx.fillText("TOTAL FARE", PAD, statsY);
   ctx.fillText("TRAVEL TIME", W / 3 + PAD, statsY);
-  const rideCount = result.legs.filter((l) => l.mode !== "transfer").length;
+  const rides = itinerary.legs.filter((leg) => leg.kind === "ride");
   ctx.fillText("RIDES", (W / 3) * 2 + PAD, statsY);
 
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 32px system-ui, sans-serif";
-  ctx.fillText(formatFare(result.total_fare), PAD, statsY + 36);
-  ctx.fillText(
-    formatDuration(result.total_duration_mins),
-    W / 3 + PAD,
-    statsY + 36
-  );
-  ctx.fillText(String(rideCount), (W / 3) * 2 + PAD, statsY + 36);
+  ctx.fillText(formatPeso(itinerary.fare), PAD, statsY + 36);
+  ctx.fillText(formatDuration(itinerary.total_mins), W / 3 + PAD, statsY + 36);
+  ctx.fillText(String(rides.length), (W / 3) * 2 + PAD, statsY + 36);
 
   // --- Leg chips ---
   const chipY = statsY + 64;
@@ -145,19 +142,16 @@ function buildCanvas(
 
   let chipX = PAD;
   const chipH = 32;
-  const transitLegs = result.legs.filter((l) => l.mode !== "transfer");
-
-  for (let i = 0; i < transitLegs.length; i++) {
-    const leg = transitLegs[i];
-    const config = MODE_CONFIG[leg.mode as keyof typeof MODE_CONFIG];
-    const label = config ? config.label.toUpperCase() : leg.mode.toUpperCase();
-    const chipText = `${label}`;
+  for (let i = 0; i < rides.length; i++) {
+    const leg = rides[i];
+    const config = MODE_CONFIG[leg.kind === "ride" ? leg.route.mode : "walk"];
+    const chipText = config.label.toUpperCase();
     ctx.font = "bold 12px system-ui, sans-serif";
     const textW = ctx.measureText(chipText).width;
     const chipW = textW + 24;
 
     // Chip background
-    const { r, g, b } = hexToRgb(config?.hex ?? "#64748b");
+    const { r, g, b } = hexToRgb(config.hex);
     ctx.fillStyle = `rgba(${r},${g},${b},0.85)`;
     drawRoundRect(ctx, chipX, chipY + 8, chipW, chipH, chipH / 2);
     ctx.fill();
@@ -170,7 +164,7 @@ function buildCanvas(
     chipX += chipW + 8;
 
     // Arrow between chips
-    if (i < transitLegs.length - 1) {
+    if (i < rides.length - 1) {
       ctx.fillStyle = "rgba(255,255,255,0.4)";
       ctx.font = "14px system-ui, sans-serif";
       ctx.fillText("→", chipX, chipY + 8 + chipH / 2 + 4);
@@ -181,7 +175,7 @@ function buildCanvas(
   // --- Footer ---
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.font = "13px system-ui, sans-serif";
-  ctx.fillText("komyut-ta-bai.vercel.app", PAD, H - PAD + 8);
+  ctx.fillText("Komyut ta Bai · estimate, not a guarantee", PAD, H - PAD + 8);
 
   const dateStr = new Date().toLocaleDateString("en-PH", {
     month: "short",
@@ -207,23 +201,23 @@ async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 interface Props {
   origin: Stop;
   destination: Stop;
-  result: JourneyResult;
+  itinerary: Itinerary;
 }
 
-export default function ShareTripButton({ origin, destination, result }: Props) {
+export default function ShareTripButton({ origin, destination, itinerary }: Props) {
   const [busy, setBusy] = useState(false);
 
   const handleShare = async () => {
     setBusy(true);
     try {
-      const canvas = buildCanvas(origin, destination, result);
+      const canvas = buildCanvas(origin, destination, itinerary);
       const blob = await canvasToBlob(canvas);
       const file = new File([blob], "komyut-trip.png", { type: "image/png" });
 
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `${origin.name} → ${destination.name}`,
-          text: `₱${result.total_fare} · ${formatDuration(result.total_duration_mins)} · Komyut ta Bai`,
+          text: `${formatPeso(itinerary.fare)} · ${formatDuration(itinerary.total_mins)} · Komyut ta Bai`,
           files: [file],
         });
       } else {
@@ -235,6 +229,8 @@ export default function ShareTripButton({ origin, destination, result }: Props) 
         a.click();
         URL.revokeObjectURL(url);
       }
+    } catch {
+      // Share sheet dismissed or unavailable; nothing to do.
     } finally {
       setBusy(false);
     }

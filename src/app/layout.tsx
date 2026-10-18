@@ -2,11 +2,15 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import { Bus } from "lucide-react";
-import InstallPrompt from "@/components/InstallPrompt";
-import MainNav from "@/components/MainNav";
-import OfflineIndicator from "@/components/OfflineIndicator";
-import ThemeToggle from "@/components/ThemeToggle";
-import { ThemeProvider } from "@/components/theme-provider";
+import { DesktopNav, MobileTabBar } from "@/components/layout/AppNav";
+import InstallPrompt from "@/components/layout/InstallPrompt";
+import LiveStatusPill from "@/components/layout/LiveStatusPill";
+import OfflineIndicator from "@/components/layout/OfflineIndicator";
+import RideTrackerBar from "@/components/layout/RideTrackerBar";
+import ThemeToggle from "@/components/layout/ThemeToggle";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { ConditionsProvider } from "@/components/providers/ConditionsProvider";
+import { RideTrackerProvider } from "@/components/providers/RideTrackerProvider";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -17,7 +21,8 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Komyut ta Bai",
-  description: "Province-wide multimodal transport planner for Cebu",
+  description:
+    "Multimodal transit planner for Cebu with commuter-reported, verified live conditions.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -29,6 +34,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#0E7A6E" },
     { media: "(prefers-color-scheme: dark)", color: "#14242b" },
@@ -42,30 +48,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={jakarta.variable}>
-      <body className="flex min-h-dvh flex-col font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <OfflineIndicator />
-          <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
-            <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
-              <Link href="/" className="flex items-center gap-2 font-bold">
-                <span className="grid size-8 place-items-center rounded-lg bg-gold text-gold-foreground">
-                  <Bus className="size-5" />
-                </span>
-                <span className="tracking-tight">Komyut ta Bai</span>
-              </Link>
-              <div className="flex items-center gap-1">
-                <MainNav />
-                <ThemeToggle />
-              </div>
-            </div>
-          </header>
-          {children}
-          <InstallPrompt />
+      <body className="flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] font-sans antialiased md:pb-0">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ConditionsProvider>
+            <RideTrackerProvider>
+              <OfflineIndicator />
+              <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
+                <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-4">
+                  <Link href="/" className="flex items-center gap-2 font-bold">
+                    <span className="grid size-8 place-items-center rounded-lg bg-gold text-gold-foreground">
+                      <Bus className="size-5" />
+                    </span>
+                    <span className="tracking-tight">Komyut ta Bai</span>
+                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    <DesktopNav />
+                    <LiveStatusPill />
+                    <ThemeToggle />
+                  </div>
+                </div>
+              </header>
+              {children}
+              <RideTrackerBar />
+              <MobileTabBar />
+              <InstallPrompt />
+            </RideTrackerProvider>
+          </ConditionsProvider>
         </ThemeProvider>
       </body>
     </html>

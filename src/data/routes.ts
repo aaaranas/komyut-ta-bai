@@ -1,7 +1,7 @@
-import type { Route } from "@/lib/types";
+import type { RouteRecord } from "@/data/schema";
 
 /** Hand-curated, field-verified routes. */
-export const curatedRoutes: Route[] = [
+export const curatedRoutes: RouteRecord[] = [
   {
     id: "ceres-argao-csbt",
     name: "Ceres Bus Argao–Cebu City",
@@ -98,6 +98,9 @@ export const curatedRoutes: Route[] = [
     first_trip: "04:00",
     last_trip: "17:30",
     verified_date: "2026-05-12",
+    headway_evidence: "estimate",
+    notes:
+      "Departure times are not yet confirmed with the operator; waits assume the average headway. Sea conditions can cancel trips.",
   },
   {
     id: "ferry-danao-consuelo",
@@ -114,6 +117,9 @@ export const curatedRoutes: Route[] = [
     first_trip: "05:30",
     last_trip: "17:00",
     verified_date: "2026-04-28",
+    headway_evidence: "estimate",
+    notes:
+      "Departure times are not yet confirmed with the operator; waits assume the average headway. Sea conditions can cancel trips.",
   },
 ];
 

@@ -1,7 +1,7 @@
 {
   "name": "Komyut ta Bai",
   "short_name": "Komyut",
-  "description": "Province-wide transport planner for Cebu",
+  "description": "Multimodal transit planner for Cebu with verified, commuter-reported live conditions",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -17,5 +17,9 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "categories": [
+    "travel",
+    "navigation"
   ]
 }

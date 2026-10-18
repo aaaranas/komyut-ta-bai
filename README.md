@@ -1,80 +1,81 @@
 # Komyut ta Bai 🚌⛴️
 
-**Asa ta, Bai?** — A province-wide multimodal public transport planner for Cebu, Philippines.
+**Asa ta, Bai?** — A multimodal transit planner for Cebu with a participatory sensing layer.
 
-Type an origin and destination (e.g. *Argao* → *Santa Fe, Bantayan Island*) and get a multi-leg journey plan: which buses, v-hires, jeepneys, and ferries to take, where to transfer, total fare, and total travel time. Think Google Maps transit directions — but for Cebu province, where Google has zero coverage.
+Komyut ta Bai plans trips across MyBus, jeepneys (PUJ), V-hires, provincial buses, and ferries using a curated dataset and a graph-based planner. Commuters report **delays, flooding, full vehicles, and road disruptions**. Those reports go through a verification layer, and a confidence-weighted, time-decayed score turns them into changes to the route graph. Every plan shows the baseline estimate next to the live-adjusted one.
 
-Everything runs client-side. No backend, no API calls, and the app works fully offline after your first visit (it's an installable PWA).
+It is the software artifact for the CMSC 198.1 thesis *“Komyut ta Bai: A Participatory Sensing Framework for Real-Time Transit Data Enrichment in Cebu’s Informal Public Transportation Network”* (UP Cebu). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how each research objective maps to code.
 
-## Coverage
+> Authentication is intentionally not implemented yet. Contributors are identified only by a salted pseudonym of a random per-device ID.
 
-- **Southern corridor:** Argao → Sibonga → Carcar → Naga → Minglanilla → Cebu South Bus Terminal (Ceres bus and v-hire)
-- **Northern corridor:** Cebu North Bus Terminal → Consolacion → Liloan → Compostela → Danao → Carmen → Catmon → Sogod → Borbon → Tabuelan → San Remigio → Hagnaya port (Ceres bus)
-- **Island links:** Hagnaya → Santa Fe (Bantayan) ferry, Danao → Consuelo (Camotes) ferry
-- **Key transfers:** CSBT ↔ CNBT cross-city, bus drop-offs ↔ ports
-- **Cebu City / Mandaue / Mactan jeepneys (unverified):** ~60 routes scraped from [cebujeepneys.weebly.com](https://cebujeepneys.weebly.com/jeepney-routes.html), with stops geocoded via OSM Nominatim. These ARE used by the planner but flagged *unverified* throughout the UI — positions, fares, and times are approximations pending field checks.
+## Features
+
+- **Multimodal trip planning** — a time-dependent Dijkstra over a directed multigraph. It models service windows and headway-based waits, one fare per vehicle (LTFRB-style distance fares for PUJs), walking links between nearby stops, transfer limits, and fastest/cheapest modes.
+- **Commuter reporting** — four categories, a few taps, prefilled from the trip you're on. You can withdraw a report at any time.
+- **Verification layer** — beta reputation that changes only from independent labels, deduplication by pseudonym, confirmations weighted below observations, an on-site check from distance to the stop, and clearance reports.
+- **Confidence-weighted, time-decayed scoring** — decay rates differ by category. Low-confidence events get only small adjustments, a segment is disabled only on strong evidence from multiple sources, and confirmed closures hold until someone reports them cleared.
+- **Hazard information** — PAGASA, DOST-ASTI, and PHIVOLCS sources, each with its connection status stated. No live feed is claimed: sensor readings entered by hand are labeled "manual". Advisories are shown as context only.
+- **Consent-based ride traces** — opt-in. Stop-to-stop times are computed on the phone, and raw GPS points never leave the device. Only medians are published, and only when at least 3 rides from at least 2 contributors back them.
+- **Privacy center** — consent toggles, your pseudonym and reliability score, your reports, and "delete everything".
+- **Research console** (`/lab`) — controlled replay scenarios, ground-truth labeling, field validation rides, and the Objective 4 metrics (estimate error, propagation time, verification precision and recall).
 
 ## Tech stack
 
-- [Next.js 16](https://nextjs.org) (App Router, static generation) + TypeScript
-- [Tailwind CSS 4](https://tailwindcss.com)
+- [Next.js 16](https://nextjs.org) (App Router) + TypeScript + [Tailwind CSS 4](https://tailwindcss.com)
 - [MapLibre GL](https://maplibre.org) with OpenStreetMap raster tiles
-- [Serwist](https://serwist.pages.dev) service worker for offline/PWA
-- Dijkstra-based journey planner over an in-memory transit graph
+- [Serwist](https://serwist.pages.dev) service worker (installable on Android). Planning still works offline on the baseline dataset.
+- Route handlers for the sensing API, with a JSON file store (prototype persistence)
 
 ## Running locally
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Note: the service worker is disabled in dev; offline behavior only applies to production builds.
+| Command | What it does |
+|---|---|
+| `npm test` | Unit tests for the planner, verification, scoring, and traces (`node:test`) |
+| `npm run validate` | Dataset integrity checks |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Route type generation + `tsc` |
+| `npm run build && npm start` | Production build (the service worker is only active here) |
 
-## Validating data
+### Environment
 
-Every change to the transit dataset should pass the integrity checks (orphan stop references, duplicate IDs, out-of-province coordinates, malformed routes, negative fares):
-
-```bash
-npm run validate
-```
-
-## Production build
-
-```bash
-npm run build
-npm start
-```
+| Variable | Purpose |
+|---|---|
+| `KOMYUT_DATA_DIR` | Where the report store lives (default `./.data`). On read-only hosts it falls back to the OS temp directory, and the UI says reports may reset. |
+| `KOMYUT_PSEUDONYM_SALT` | Salt for hashing device IDs into pseudonyms. **Set this on any shared deployment.** |
+| `KOMYUT_LAB_KEY` | When set, `/api/lab/*` requires this shared key. Use it until real authentication exists. |
 
 ## Project layout
 
 ```
-src/lib/types.ts      Domain types (Stop, Route, Transfer, Leg, JourneyResult)
-src/data/             The transit dataset (stops, routes, transfers)
-src/lib/graph.ts      Builds the adjacency graph at import time
-src/lib/planner.ts    Dijkstra planner (fastest / cheapest)
-src/components/       Map, search form, PWA UI
-scripts/              Data validation + icon generation
+src/core/            framework-free domain logic (unit-tested)
+  transit/           model, dataset normalization, fares, service windows, time
+  planner/           graph, live-conditions overlay, time-dependent Dijkstra
+  sensing/           reports, policy, reputation, event derivation, effects, traces
+  hazards/           official sources, spatial/temporal interpretation
+  evaluation/        metrics and controlled replay scenarios
+  snapshot.ts        API contract for live conditions
+src/server/          persistence, pseudonyms, services behind the API
+src/app/api/         route handlers (conditions, reports, me, traces, hazards, lab)
+src/app/             pages: plan, alerts, report, routes, privacy, lab, map
+src/components/      UI grouped by feature
+src/data/            the curated dataset (authoring format in schema.ts)
+scripts/             data validation and generators
 ```
 
 ## Contributing data
 
-The dataset lives in plain TypeScript files under [`src/data/`](src/data/) — no database required. To add or correct a route:
+The dataset lives in plain TypeScript under [`src/data/`](src/data/), in the record format defined in [`schema.ts`](src/data/schema.ts).
 
-1. Add any new stops to `src/data/stops.ts` with real coordinates (from OpenStreetMap) and the correct `municipality` and `type`.
-2. Add the route to `src/data/routes.ts` with ordered stops, fare structure (`per_km` or `flat`), end-to-end duration, frequency, and first/last trip times.
-3. If a connection requires walking between stops (e.g. terminal → port), add it to `src/data/transfers.ts`.
-4. Set `verified_date` to the date you personally confirmed the schedule/fare.
-5. Run `npm run validate` and open a pull request describing how you verified the data (rode the route, asked the dispatcher, official fare matrix, etc.).
-
-> ⚠️ Fares and schedules in Cebu change often. Data with a `verified_date` older than a year should be treated as suspect — re-verification PRs are the most valuable contribution of all.
+1. Add stops to `src/data/stops.ts` with real coordinates and the correct `municipality` and `type`.
+2. Add the route to `src/data/routes.ts`: ordered stops, fare (`per_km` with optional `base_km`, or `flat`), end-to-end duration, headway, and first/last trips. Set `direction: "one_way"` when each direction has its own record. Add `departures` only when a published timetable exists, because informal services are modeled by headway, never by invented timetables. Set `headway_evidence: "estimate"` when the headway is not confirmed.
+3. Add walking or cross-town links to `src/data/transfers.ts`. Nearby stops of different routes (≤ 250 m) are linked automatically.
+4. Set `verified_date` to the date you confirmed the data, then run `npm run validate`.
 
 ### The generated jeepney network
 
-The city jeepney data is a three-stage pipeline:
-
-1. `src/data/experimental/cebu-city-jeepneys.ts` — raw scraped route descriptions (the source of truth for regeneration).
-2. `npx tsx scripts/build-jeepney-data.ts` — normalizes landmark names, geocodes them via OSM Nominatim (cached in `scripts/.geocode-cache.json`, ~1 req/s per usage policy), and writes `src/data/generated/jeepney-stops.ts` + `jeepney-routes.ts`.
-3. The generated files are merged into the main dataset with `unverified: true`, which the UI surfaces as amber badges.
-
-To promote a route to verified: ride it, correct its stops/coordinates and fare, move it into `src/data/routes.ts` (dropping the `unverified` flag, setting a real `verified_date`), and remove the raw entry so the generator stops emitting it. To fix a single wrong stop position, correct the entry in `scripts/.geocode-cache.json` and re-run the generator — don't edit the generated files directly.
+`src/data/experimental/cebu-city-jeepneys.ts` holds raw route descriptions scraped from cebujeepneys.weebly.com. `npx tsx scripts/build-jeepney-data.ts` geocodes them through OSM Nominatim (cached in `scripts/.geocode-cache.json`) and writes `src/data/generated/`. These routes are flagged **unverified** throughout the UI. To promote one, ride it, fix its stops and fare, move it into `src/data/routes.ts`, and remove the raw entry.
