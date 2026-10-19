@@ -59,7 +59,7 @@ export default function ConditionsMapCanvas({ markers }: { markers: ConditionMar
   return (
     <div
       ref={containerRef}
-      className="h-64 w-full overflow-hidden rounded-2xl border sm:h-80"
+      className="h-full w-full overflow-hidden rounded-xl border"
       role="img"
       aria-label="Map of active alerts"
     />

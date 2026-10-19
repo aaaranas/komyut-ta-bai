@@ -8,6 +8,7 @@ import { aggregateTravelTimes } from "@/core/sensing/traces";
 import type { Reputation, TransitEvent } from "@/core/sensing/types";
 import type { ConditionsSnapshot, PublicEvent, StorageMode } from "@/core/snapshot";
 import { getRoute, stops } from "@/core/transit/catalog";
+import { routeCode } from "@/core/transit/naming";
 import { headwayAt } from "@/core/transit/service";
 import { cebuDepartureTime } from "@/core/transit/time";
 import type { Database } from "@/server/store";
@@ -34,7 +35,8 @@ function effectContext(now: Date): EffectContext {
 
 export function publicEvent(event: TransitEvent, now: Date): PublicEvent {
   const effect = eventEffect(event, effectContext(now));
-  const routeName = event.route_id ? getRoute(event.route_id)?.name : undefined;
+  const route = event.route_id ? getRoute(event.route_id) : undefined;
+  const routeName = route ? routeCode(route) : undefined;
   return { ...event, effect, consequence: describeEffect(effect, routeName) };
 }
 

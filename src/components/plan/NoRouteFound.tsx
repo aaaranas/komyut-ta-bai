@@ -1,22 +1,17 @@
-import { MapPinOff } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default function NoRouteFound({ limited = false }: { limited?: boolean }) {
   return (
-    <div className="mt-8 flex flex-col items-center rounded-2xl border bg-card p-6 text-center">
-      <span className="grid size-12 place-items-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
-        <MapPinOff className="size-6" />
-      </span>
-      <p className="mt-3 text-base font-semibold text-foreground">No route found</p>
-      <p className="mt-1 text-sm text-muted-foreground">
+    <div className="mt-10">
+      <p className="text-base font-semibold">No route found</p>
+      <p className="mt-1 max-w-prose text-sm text-muted-foreground">
         {limited
-          ? "No trip fits that transfer limit. Try allowing more transfers."
-          : "We couldn't connect these stops within the curated dataset. Try a nearby terminal or major town — coverage includes the southern and northern corridors, Metro Cebu, Bantayan, and Camotes."}
+          ? "No trip fits that transfer limit. Allow more transfers to see other options."
+          : "These stops aren't connected in our route data yet. Try a nearby terminal or town center; coverage spans the south and north corridors, Metro Cebu, Bantayan, and Camotes."}
       </p>
-      <Button asChild variant="outline" className="mt-4">
-        <Link href="/routes">See covered routes</Link>
-      </Button>
+      <Link href="/routes" className="mt-3 inline-block text-sm font-medium underline underline-offset-4">
+        See covered routes
+      </Link>
     </div>
   );
 }

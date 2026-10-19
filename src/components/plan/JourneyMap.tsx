@@ -9,6 +9,7 @@ import { getStop } from "@/core/transit/catalog";
 import type { Stop } from "@/core/transit/types";
 import { DEFAULT_BASEMAP_ID, getBasemap, rasterStyle } from "@/lib/basemaps";
 import { CATEGORY_CONFIG, MODE_CONFIG } from "@/lib/presentation";
+import { cn } from "@/lib/utils";
 
 function popupHtml(title: string, subtitle: string): string {
   const escape = (text: string) =>
@@ -17,7 +18,7 @@ function popupHtml(title: string, subtitle: string): string {
 }
 
 /** Each leg drawn through the stops it actually visits, plus events on the trip. */
-export default function JourneyMap({ itinerary }: { itinerary: Itinerary }) {
+export default function JourneyMap({ itinerary, className }: { itinerary: Itinerary; className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { eventsById } = useConditions();
   // Serialized so the map only rebuilds when this trip's events change,
@@ -62,7 +63,7 @@ export default function JourneyMap({ itinerary }: { itinerary: Itinerary }) {
           source: `leg-${index}`,
           layout: { "line-cap": "round", "line-join": "round" },
           paint: {
-            "line-color": isWalk ? "#94a3b8" : MODE_CONFIG[leg.route.mode].hex,
+            "line-color": isWalk ? MODE_CONFIG.walk.hex : MODE_CONFIG[leg.route.mode].hex,
             "line-width": isWalk ? 2.5 : 4.5,
             ...(isWalk ? { "line-dasharray": [2, 2.5] } : {}),
           },
@@ -72,11 +73,11 @@ export default function JourneyMap({ itinerary }: { itinerary: Itinerary }) {
       const origin = itinerary.legs[0].from;
       const destination = itinerary.legs[itinerary.legs.length - 1].to;
       markers.push(
-        new maplibregl.Marker({ color: "#0d9488" })
+        new maplibregl.Marker({ color: "#16181D" })
           .setLngLat([origin.lng, origin.lat])
           .setPopup(new maplibregl.Popup({ offset: 26 }).setHTML(popupHtml(origin.name, origin.municipality)))
           .addTo(map),
-        new maplibregl.Marker({ color: "#e11d48" })
+        new maplibregl.Marker({ color: "#16181D", scale: 0.8 })
           .setLngLat([destination.lng, destination.lat])
           .setPopup(new maplibregl.Popup({ offset: 26 }).setHTML(popupHtml(destination.name, destination.municipality)))
           .addTo(map)
@@ -108,7 +109,7 @@ export default function JourneyMap({ itinerary }: { itinerary: Itinerary }) {
   return (
     <div
       ref={containerRef}
-      className="mt-4 h-56 w-full overflow-hidden rounded-2xl border sm:h-72"
+      className={cn("w-full overflow-hidden rounded-xl border", className)}
       role="img"
       aria-label="Map of your journey"
     />

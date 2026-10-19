@@ -1,8 +1,8 @@
 "use client";
 
-import { FlaskConical, KeyRound, Loader2, Play, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { ConfidenceMeter, ReplayBadge, StatusBadge } from "@/components/common/badges";
+import { ConfidenceBar, ReplayTag, StatusLabel } from "@/components/common/badges";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import StopCombobox from "@/components/search/StopCombobox";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,9 @@ const time = (iso: string | null) =>
 
 function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <section className="mt-8">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+    <section className="mt-10">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-base font-bold">{title}</h2>
         {action}
       </div>
       <div className="mt-3">{children}</div>
@@ -39,9 +39,9 @@ function Section({ title, children, action }: { title: string; children: React.R
 
 function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <div className="rounded-xl border bg-card p-3">
+    <div className="border-t pt-2">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-xl font-bold tabular-nums text-foreground">{value}</p>
+      <p className="mt-0.5 text-2xl font-extrabold tabular-nums">{value}</p>
       {note && <p className="text-[11px] text-muted-foreground">{note}</p>}
     </div>
   );
@@ -100,23 +100,22 @@ export default function LabConsole() {
   const { verification, propagation, accuracy } = data.metrics;
   return (
     <div>
-      <p className="mt-4 flex gap-2 rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-        <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+      <p className="mt-4 max-w-prose border-l-[3px] border-warn pl-3 text-sm">
         Authentication is not implemented yet. Set <code>KOMYUT_LAB_KEY</code> on any shared deployment so only
         researchers can label reports or load scenarios. Storage: {data.storage}.
       </p>
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
       <Section title="Objective 4 metrics">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
           <Metric label="Verification precision" value={pct(verification.precision)} note={`${verification.labeled} labeled reports`} />
-          <Metric label="Verification recall" value={pct(verification.recall)} note={`${verification.false_positive} false admissions · ${verification.false_negative} false rejections`} />
-          <Metric label="Propagation (median)" value={mins(propagation.median_mins)} note={`p90 ${mins(propagation.p90_mins)} · ${propagation.events} events`} />
-          <Metric label="Field rides" value={String(accuracy.find((a) => a.condition === "all")?.rides ?? 0)} note="baseline vs enriched below" />
+          <Metric label="Verification recall" value={pct(verification.recall)} note={`${verification.false_positive} false admissions, ${verification.false_negative} false rejections`} />
+          <Metric label="Propagation (median)" value={mins(propagation.median_mins)} note={`p90 ${mins(propagation.p90_mins)} over ${propagation.events} events`} />
+          <Metric label="Field rides" value={String(accuracy.find((a) => a.condition === "all")?.rides ?? 0)} note="Errors by condition below" />
         </div>
         <div className="mt-3 overflow-x-auto rounded-xl border">
           <table className="w-full min-w-[480px] text-left text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
+            <thead className="text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2">Condition</th>
                 <th className="px-3 py-2">Rides</th>
@@ -146,15 +145,14 @@ export default function LabConsole() {
         title="Controlled replay scenarios"
         action={
           <Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => api.labDelete("scenarios"))}>
-            <Trash2 className="size-3.5" />
             Clear replay data
           </Button>
         }
       >
-        <ul className="grid gap-2 md:grid-cols-2">
+        <ul className="grid gap-x-8 gap-y-5 md:grid-cols-2">
           {data.scenarios.map((scenario) => (
-            <li key={scenario.id} className="rounded-xl border bg-card p-3.5">
-              <p className="text-sm font-semibold text-foreground">{scenario.title}</p>
+            <li key={scenario.id} className="border-t pt-3">
+              <p className="text-sm font-semibold">{scenario.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">{scenario.description}</p>
               <p className="mt-1 text-xs text-foreground"><strong>Expected:</strong> {scenario.expected}</p>
               <Button
@@ -163,7 +161,6 @@ export default function LabConsole() {
                 disabled={busy}
                 onClick={() => void run(() => api.labPost("scenarios", { scenario_id: scenario.id }))}
               >
-                <Play className="size-3.5" />
                 Load
               </Button>
             </li>
@@ -172,9 +169,9 @@ export default function LabConsole() {
       </Section>
 
       <Section title={`Events (${data.events.length})`}>
-        <div className="overflow-x-auto rounded-xl border">
+        <div className="overflow-x-auto border-y">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
+            <thead className="text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2">Event</th>
                 <th className="px-3 py-2">Status</th>
@@ -190,14 +187,14 @@ export default function LabConsole() {
                   <td className="px-3 py-2">
                     <span className="font-medium">{CATEGORY_CONFIG[event.category].label}</span>
                     {event.blocking && <span className="ml-1 text-xs font-semibold text-destructive">blocking</span>}
-                    {event.replay && <ReplayBadge className="ml-1" />}
+                    {event.replay && <ReplayTag className="ml-1" />}
                     <p className="text-xs text-muted-foreground">
                       {getStop(event.stop_id)?.name}
-                      {event.route_id ? ` · ${getRoute(event.route_id)?.name}` : ""}
+                      {event.route_id ? `, ${getRoute(event.route_id)?.name}` : ""}
                     </p>
                   </td>
-                  <td className="px-3 py-2"><StatusBadge status={event.status} /></td>
-                  <td className="px-3 py-2"><ConfidenceMeter value={event.confidence} /></td>
+                  <td className="px-3 py-2"><StatusLabel status={event.status} /></td>
+                  <td className="px-3 py-2"><ConfidenceBar value={event.confidence} /></td>
                   <td className="px-3 py-2 text-xs tabular-nums">
                     {event.independent_sources} indep. ({event.official_sources} official, {event.confirmations} confirm.)
                   </td>
@@ -214,14 +211,13 @@ export default function LabConsole() {
         title={`Reports & ground-truth labels (${data.reports.length})`}
         action={
           <Button variant="ghost" size="sm" onClick={() => void load()}>
-            <RefreshCw className="size-3.5" />
             Reload
           </Button>
         }
       >
-        <div className="overflow-x-auto rounded-xl border">
+        <div className="overflow-x-auto border-y">
           <table className="w-full min-w-[820px] text-left text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
+            <thead className="text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2">Report</th>
                 <th className="px-3 py-2">Contributor</th>
@@ -236,10 +232,10 @@ export default function LabConsole() {
                   <td className="px-3 py-2">
                     <span className="font-medium">{CATEGORY_CONFIG[report.category].label}</span>{" "}
                     <span className="text-xs text-muted-foreground">({report.kind})</span>
-                    {report.replay && <ReplayBadge className="ml-1" />}
+                    {report.replay && <ReplayTag className="ml-1" />}
                     <p className="text-xs text-muted-foreground">
                       {getStop(report.stop_id)?.name}
-                      {report.distance_to_stop_m !== null ? ` · ${report.distance_to_stop_m} m away` : " · no location"}
+                      {report.distance_to_stop_m !== null ? `, ${report.distance_to_stop_m} m away` : ", no location"}
                     </p>
                   </td>
                   <td className="px-3 py-2 text-xs">
@@ -247,7 +243,7 @@ export default function LabConsole() {
                     <p className="text-muted-foreground">credibility {report.credibility.toFixed(2)}</p>
                   </td>
                   <td className="px-3 py-2 text-xs tabular-nums">{time(report.submitted_at)}</td>
-                  <td className="px-3 py-2"><StatusBadge status={report.event_status} /></td>
+                  <td className="px-3 py-2"><StatusLabel status={report.event_status} /></td>
                   <td className="px-3 py-2">
                     <LabelControl
                       current={report.label?.label ?? null}
@@ -269,9 +265,9 @@ export default function LabConsole() {
       </div>
 
       <Section title={`Policy ${POLICY_VERSION} (design inputs under evaluation)`}>
-        <div className="overflow-x-auto rounded-xl border">
+        <div className="overflow-x-auto border-y">
           <table className="w-full min-w-[560px] text-left text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
+            <thead className="text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2">Category</th>
                 <th className="px-3 py-2">Match window</th>
@@ -354,7 +350,7 @@ function ValidationForm({ disabled, onSubmit }: { disabled: boolean; onSubmit: (
   return (
     <Section title="Record a field validation ride">
       <form
-        className="space-y-3 rounded-xl border bg-card p-4"
+        className="space-y-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!origin || !destination) return;
@@ -387,7 +383,6 @@ function ValidationForm({ disabled, onSubmit }: { disabled: boolean; onSubmit: (
           </select>
         </label>
         <Button type="submit" disabled={disabled || !origin || !destination || !(Number(observed) > 0)}>
-          <FlaskConical className="size-4" />
           Save ride and compute estimates
         </Button>
       </form>
@@ -405,7 +400,7 @@ function OfficialForm({ disabled, onSubmit }: { disabled: boolean; onSubmit: (bo
   return (
     <Section title="Enter an official record manually">
       <form
-        className="space-y-3 rounded-xl border bg-card p-4"
+        className="space-y-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!stop) return;
@@ -457,7 +452,7 @@ function LabKeyForm({ onSaved }: { onSaved: () => void }) {
   const [key, setKey] = useState(() => readString(STORAGE_KEYS.labKey) ?? "");
   return (
     <form
-      className="mt-6 max-w-sm space-y-3 rounded-xl border bg-card p-4"
+      className="mt-6 max-w-sm space-y-3"
       onSubmit={(event) => {
         event.preventDefault();
         writeString(STORAGE_KEYS.labKey, key || null);
@@ -465,7 +460,6 @@ function LabKeyForm({ onSaved }: { onSaved: () => void }) {
       }}
     >
       <p className="flex items-center gap-2 text-sm font-semibold">
-        <KeyRound className="size-4" />
         This deployment requires a lab key
       </p>
       <Input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="KOMYUT_LAB_KEY" />

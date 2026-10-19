@@ -1,24 +1,15 @@
 "use client";
 
-import { Download, Share2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import type { Itinerary } from "@/core/planner";
 import { formatPeso } from "@/core/transit/fare";
 import { formatDuration } from "@/core/transit/time";
 import type { Stop } from "@/core/transit/types";
-import { MODE_CONFIG } from "@/lib/presentation";
+import { MODE_CONFIG, routeCode } from "@/lib/presentation";
 
 const W = 720;
 const H = 400;
 const PAD = 40;
-
-function hexToRgb(hex: string) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return { r, g, b };
-}
 
 function drawRoundRect(
   ctx: CanvasRenderingContext2D,
@@ -52,40 +43,21 @@ function buildCanvas(
   const ctx = canvas.getContext("2d")!;
 
   // --- Background ---
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "#0f4c3a");
-  bg.addColorStop(1, "#0a7a5e");
-  ctx.fillStyle = bg;
+  ctx.fillStyle = "#16181D";
   drawRoundRect(ctx, 0, 0, W, H, 24);
   ctx.fill();
-
-  // --- Subtle grid texture ---
-  ctx.strokeStyle = "rgba(255,255,255,0.04)";
-  ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 40) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
-    ctx.stroke();
-  }
-  for (let y = 0; y < H; y += 40) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-  }
 
   // --- App label ---
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = "bold 18px system-ui, sans-serif";
-  ctx.fillText("KOMYUT TA BAI", PAD, PAD + 14);
+  ctx.fillText("Komyut ta Bai", PAD, PAD + 14);
 
   // --- From → To ---
   const fromY = PAD + 56;
   ctx.fillStyle = "rgba(255,255,255,0.65)";
   ctx.font = "500 15px system-ui, sans-serif";
-  ctx.fillText("FROM", PAD, fromY);
-  ctx.fillText("TO", W / 2 + 20, fromY);
+  ctx.fillText("From", PAD, fromY);
+  ctx.fillText("To", W / 2 + 20, fromY);
 
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 26px system-ui, sans-serif";
@@ -123,10 +95,10 @@ function buildCanvas(
   const statsY = fromY + 80;
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.font = "500 13px system-ui, sans-serif";
-  ctx.fillText("TOTAL FARE", PAD, statsY);
-  ctx.fillText("TRAVEL TIME", W / 3 + PAD, statsY);
+  ctx.fillText("Fare", PAD, statsY);
+  ctx.fillText("Travel time", W / 3 + PAD, statsY);
   const rides = itinerary.legs.filter((leg) => leg.kind === "ride");
-  ctx.fillText("RIDES", (W / 3) * 2 + PAD, statsY);
+  ctx.fillText("Rides", (W / 3) * 2 + PAD, statsY);
 
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 32px system-ui, sans-serif";
@@ -138,26 +110,25 @@ function buildCanvas(
   const chipY = statsY + 64;
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.font = "500 12px system-ui, sans-serif";
-  ctx.fillText("ROUTE", PAD, chipY);
+  ctx.fillText("Vehicles", PAD, chipY);
 
   let chipX = PAD;
   const chipH = 32;
   for (let i = 0; i < rides.length; i++) {
     const leg = rides[i];
     const config = MODE_CONFIG[leg.kind === "ride" ? leg.route.mode : "walk"];
-    const chipText = config.label.toUpperCase();
+    const chipText = leg.kind === "ride" ? routeCode(leg.route) : config.short;
     ctx.font = "bold 12px system-ui, sans-serif";
     const textW = ctx.measureText(chipText).width;
     const chipW = textW + 24;
 
     // Chip background
-    const { r, g, b } = hexToRgb(config.hex);
-    ctx.fillStyle = `rgba(${r},${g},${b},0.85)`;
-    drawRoundRect(ctx, chipX, chipY + 8, chipW, chipH, chipH / 2);
+    ctx.fillStyle = config.hex;
+    drawRoundRect(ctx, chipX, chipY + 8, chipW, chipH, 6);
     ctx.fill();
 
     // Chip text
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = config.ink;
     ctx.font = "bold 12px system-ui, sans-serif";
     ctx.fillText(chipText, chipX + 12, chipY + 8 + chipH / 2 + 4);
 
@@ -175,7 +146,7 @@ function buildCanvas(
   // --- Footer ---
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.font = "13px system-ui, sans-serif";
-  ctx.fillText("Komyut ta Bai · estimate, not a guarantee", PAD, H - PAD + 8);
+  ctx.fillText("Komyut ta Bai. Times and fares are estimates.", PAD, H - PAD + 8);
 
   const dateStr = new Date().toLocaleDateString("en-PH", {
     month: "short",
@@ -217,7 +188,7 @@ export default function ShareTripButton({ origin, destination, itinerary }: Prop
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `${origin.name} → ${destination.name}`,
-          text: `${formatPeso(itinerary.fare)} · ${formatDuration(itinerary.total_mins)} · Komyut ta Bai`,
+          text: `${formatDuration(itinerary.total_mins)} for ${formatPeso(itinerary.fare)}, planned with Komyut ta Bai`,
           files: [file],
         });
       } else {
@@ -237,19 +208,13 @@ export default function ShareTripButton({ origin, destination, itinerary }: Prop
   };
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <button
+      type="button"
       onClick={handleShare}
       disabled={busy}
-      className="gap-1.5 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+      className="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:opacity-60"
     >
-      {busy ? (
-        <Download className="size-3.5 animate-bounce" />
-      ) : (
-        <Share2 className="size-3.5" />
-      )}
-      Share trip
-    </Button>
+      {busy ? "Preparing image" : "Share"}
+    </button>
   );
 }

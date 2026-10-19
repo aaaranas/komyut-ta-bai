@@ -31,16 +31,14 @@ function addStopMarkers(
   stops: Stop[],
   color: string
 ): maplibregl.Marker[] {
-  return stops.map((stop) =>
-    new maplibregl.Marker({ color })
+  return stops.map((stop) => {
+    const element = document.createElement("div");
+    element.style.cssText = `width:12px;height:12px;border-radius:9999px;background:#fff;border:3px solid ${color}`;
+    return new maplibregl.Marker({ element })
       .setLngLat([stop.lng, stop.lat])
-      .setPopup(
-        new maplibregl.Popup({ offset: 24 }).setText(
-          `${stop.name} (${stop.municipality})`
-        )
-      )
-      .addTo(map)
-  );
+      .setPopup(new maplibregl.Popup({ offset: 10 }).setText(`${stop.name}, ${stop.municipality}`))
+      .addTo(map);
+  });
 }
 
 function addRouteLine(
@@ -123,7 +121,7 @@ export default function RouteMapCanvas({ stops, color, path, className }: RouteM
   };
 
   return (
-    <div className={`relative ${className ?? "h-72 w-full rounded-2xl"}`}>
+    <div className={`relative ${className ?? "h-full w-full"}`}>
       <div
         ref={containerRef}
         className="h-full w-full"

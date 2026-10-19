@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, Loader2, MapPin, RotateCcw, Send, Undo2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { StatusBadge } from "@/components/common/badges";
+import { StatusLabel } from "@/components/common/badges";
+import RoutePlate from "@/components/common/RoutePlate";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import StopCombobox from "@/components/search/StopCombobox";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import type { Stop } from "@/core/transit/types";
 import { updateConsent, useConsent } from "@/hooks/useConsent";
 import { api, type ReportReceipt } from "@/lib/api";
 import { currentLocation } from "@/lib/location";
-import { CATEGORY_CONFIG, MODE_CONFIG, STATUS_CONFIG } from "@/lib/presentation";
+import { CATEGORY_CONFIG, STATUS_CONFIG, routeTitle } from "@/lib/presentation";
 import { cn } from "@/lib/utils";
 
 const DELAY_CHOICES = [10, 20, 30, 45];
@@ -27,11 +28,9 @@ const WHEN_CHOICES = [
 
 function Step({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-6">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span className="grid size-6 place-items-center rounded-full bg-primary text-xs text-primary-foreground">
-          {number}
-        </span>
+    <section className="mt-8">
+      <h2 className="text-base font-bold">
+        <span className="mr-2 tabular-nums text-muted-foreground">{number}</span>
         {title}
       </h2>
       <div className="mt-3">{children}</div>
@@ -56,12 +55,11 @@ function Choice({
       aria-pressed={selected}
       onClick={onClick}
       className={cn(
-        "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-3.5 text-sm font-medium transition-colors",
-        selected ? "border-primary bg-primary text-primary-foreground" : "bg-card text-foreground hover:bg-accent",
+        "inline-flex min-h-11 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium transition-colors",
+        selected ? "border-foreground bg-foreground text-background" : "border-input hover:bg-accent",
         className
       )}
     >
-      {selected && <Check className="size-4" />}
       {children}
     </button>
   );
@@ -81,37 +79,31 @@ function DetailPicker({
       <div className="flex flex-wrap gap-2">
         {DELAY_CHOICES.map((minutes) => (
           <Choice key={minutes} selected={details.delay_mins === minutes} onClick={() => onChange({ delay_mins: minutes })}>
-            {minutes === 45 ? "45+ min" : `~${minutes} min`}
+            {minutes === 45 ? "45 min or more" : `About ${minutes} min`}
           </Choice>
         ))}
       </div>
     );
   }
-  if (category === "flooding") {
-    return (
-      <div className="grid grid-cols-2 gap-2">
-        <Choice selected={details.flood_level === "passable"} onClick={() => onChange({ flood_level: "passable" })}>
-          Vehicles can pass
+  const pair =
+    category === "flooding"
+      ? ([
+          ["Vehicles can pass", { flood_level: "passable" }, details.flood_level === "passable"],
+          ["Not passable", { flood_level: "impassable" }, details.flood_level === "impassable"],
+        ] as const)
+      : ([
+          ["Slow traffic", { road_status: "slow" }, details.road_status === "slow"],
+          ["Road closed", { road_status: "closed" }, details.road_status === "closed"],
+        ] as const);
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {pair.map(([label, value, selected]) => (
+        <Choice key={label} selected={selected} onClick={() => onChange(value)} className="justify-center">
+          {label}
         </Choice>
-        <Choice selected={details.flood_level === "impassable"} onClick={() => onChange({ flood_level: "impassable" })}>
-          Not passable
-        </Choice>
-      </div>
-    );
-  }
-  if (category === "road_disruption") {
-    return (
-      <div className="grid grid-cols-2 gap-2">
-        <Choice selected={details.road_status === "slow"} onClick={() => onChange({ road_status: "slow" })}>
-          Slow traffic
-        </Choice>
-        <Choice selected={details.road_status === "closed"} onClick={() => onChange({ road_status: "closed" })}>
-          Road closed
-        </Choice>
-      </div>
-    );
-  }
-  return null;
+      ))}
+    </div>
+  );
 }
 
 function detailsComplete(category: ReportCategory, details: ReportDetails): boolean {
@@ -142,30 +134,25 @@ export default function ReportFlow() {
   const routeOk = !needsRoute || (routeId !== null && servingRoutes.some((route) => route.id === routeId));
   const ready = category !== null && stop !== null && routeOk && detailsComplete(category, details);
 
-  const pickCategory = (next: ReportCategory) => {
-    setCategory(next);
-    setDetails({});
-    setError(null);
-  };
-
   const submit = async () => {
     if (!ready || !category || !stop) return;
     setBusy(true);
     setError(null);
     try {
       const location = consent.reportLocation === "granted" ? await currentLocation() : null;
-      const result = await api.submitReport({
-        category,
-        stop_id: stop.id,
-        route_id: needsRoute ? routeId : null,
-        details,
-        observed_minutes_ago: minutesAgo,
-        location,
-      });
-      setReceipt(result);
+      setReceipt(
+        await api.submitReport({
+          category,
+          stop_id: stop.id,
+          route_id: needsRoute ? routeId : null,
+          details,
+          observed_minutes_ago: minutesAgo,
+          location,
+        })
+      );
       void refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not send the report.");
+      setError(caught instanceof Error ? caught.message : "Couldn't send the report.");
     } finally {
       setBusy(false);
     }
@@ -178,7 +165,7 @@ export default function ReportFlow() {
       setReceipt(await api.withdrawReport(receipt.report.id));
       void refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not withdraw.");
+      setError(caught instanceof Error ? caught.message : "Couldn't withdraw the report.");
     } finally {
       setBusy(false);
     }
@@ -195,31 +182,29 @@ export default function ReportFlow() {
   if (receipt) {
     const status = receipt.event_status;
     return (
-      <div className="mt-6 rounded-2xl border bg-card p-5">
-        <StatusBadge status={status} />
-        <h2 className="mt-3 text-lg font-bold text-foreground">
-          {status === "withdrawn" ? "Report withdrawn" : "Salamat, bai! Report received."}
+      <div className="mt-8">
+        <StatusLabel status={status} />
+        <h2 className="mt-2 text-xl font-extrabold tracking-tight">
+          {status === "withdrawn" ? "Report withdrawn" : "Salamat, bai. Report sent."}
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{STATUS_CONFIG[status].description}</p>
-        {status === "pending" && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Reports are checked before others see them. Yours is published once another commuter or an official
-            reading agrees{consent.reportLocation !== "granted" ? ", or sooner if you attach your location" : ""}.
-          </p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+          {status === "pending"
+            ? `Other commuters see it once another report or an official reading agrees${
+                consent.reportLocation !== "granted" ? ". Attaching your location next time makes it count more" : ""
+              }.`
+            : STATUS_CONFIG[status].description}
+        </p>
+        <div className="mt-5 flex flex-wrap gap-2">
           {status !== "withdrawn" && (
             <Button variant="outline" onClick={() => void withdraw()} disabled={busy}>
-              <Undo2 className="size-4" />
               Withdraw report
             </Button>
           )}
           <Button variant="outline" onClick={startOver}>
-            <RotateCcw className="size-4" />
             Report something else
           </Button>
           <Button asChild variant="ghost">
-            <Link href="/alerts">See live alerts</Link>
+            <Link href="/alerts">See alerts</Link>
           </Button>
         </div>
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
@@ -230,7 +215,7 @@ export default function ReportFlow() {
   return (
     <div>
       <Step number={1} title="What's happening?">
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2">
           {REPORT_CATEGORIES.map((key) => {
             const config = CATEGORY_CONFIG[key];
             const selected = category === key;
@@ -239,18 +224,22 @@ export default function ReportFlow() {
                 key={key}
                 type="button"
                 aria-pressed={selected}
-                onClick={() => pickCategory(key)}
+                onClick={() => {
+                  setCategory(key);
+                  setDetails({});
+                  setError(null);
+                }}
                 className={cn(
-                  "flex min-h-24 flex-col items-start gap-2 rounded-2xl border-2 p-3.5 text-left transition",
-                  selected ? `${config.tone} border-current` : "border-transparent bg-card shadow-sm ring-1 ring-border hover:bg-accent"
+                  "flex min-h-[5.5rem] flex-col justify-between gap-3 rounded-xl border p-3.5 text-left transition-colors",
+                  selected ? "border-foreground ring-1 ring-foreground" : "border-input hover:bg-accent"
                 )}
               >
-                <span className={cn("grid size-9 place-items-center rounded-xl", config.solid)}>
+                <span style={{ color: config.hex }} aria-hidden="true">
                   <config.Icon className="size-5" />
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold">{config.label}</span>
-                  <span className="block text-xs opacity-75">{config.prompt}</span>
+                  <span className="block text-[15px] font-semibold leading-tight">{config.label}</span>
+                  <span className="block text-xs text-muted-foreground">{config.prompt}</span>
                 </span>
               </button>
             );
@@ -262,7 +251,7 @@ export default function ReportFlow() {
         <Step number={2} title="Where?">
           <StopCombobox
             label="Nearest stop"
-            placeholder="Search or tap the target to find stops near you"
+            placeholder="Search, or use your location"
             value={stop}
             onChange={(next) => {
               setStop(next);
@@ -275,24 +264,35 @@ export default function ReportFlow() {
       {category && stop && needsRoute && (
         <Step number={3} title="Which ride?">
           {servingRoutes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No routes in our data stop here. Try a nearby stop.</p>
+            <p className="text-sm text-muted-foreground">No routes in our data stop here. Pick a nearby stop.</p>
           ) : (
-            <div className="flex flex-col gap-2">
+            <ul className="divide-y border-y">
               {servingRoutes.map((route) => {
-                const mode = MODE_CONFIG[route.mode];
+                const selected = routeId === route.id;
                 return (
-                  <Choice
-                    key={route.id}
-                    selected={routeId === route.id}
-                    onClick={() => setRouteId(route.id)}
-                    className="justify-start text-left"
-                  >
-                    <mode.Icon className="size-4 shrink-0" />
-                    <span className="truncate">{route.name}</span>
-                  </Choice>
+                  <li key={route.id}>
+                    <button
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setRouteId(route.id)}
+                      className="flex min-h-12 w-full items-center gap-3 py-2 text-left"
+                    >
+                      <span
+                        className={cn(
+                          "grid size-5 shrink-0 place-items-center rounded-full border-2",
+                          selected ? "border-foreground" : "border-input"
+                        )}
+                        aria-hidden="true"
+                      >
+                        {selected && <span className="size-2.5 rounded-full bg-foreground" />}
+                      </span>
+                      <RoutePlate route={route} size="sm" />
+                      <span className="min-w-0 truncate text-sm">{routeTitle(route)}</span>
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
         </Step>
       )}
@@ -304,8 +304,8 @@ export default function ReportFlow() {
       )}
 
       {ready && (
-        <section className="mt-6 rounded-2xl border bg-muted/40 p-4">
-          <p className="text-sm font-medium text-foreground">When did you see it?</p>
+        <section className="mt-8 border-t pt-6">
+          <p className="text-sm font-semibold">When did you see it?</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {WHEN_CHOICES.map((choice) => (
               <Choice key={choice.minutes} selected={minutesAgo === choice.minutes} onClick={() => setMinutesAgo(choice.minutes)}>
@@ -314,30 +314,30 @@ export default function ReportFlow() {
             ))}
           </div>
 
-          <label className="mt-4 flex items-start gap-3 text-sm">
+          <label className="mt-5 flex items-start gap-3 text-sm">
             <input
               type="checkbox"
-              className="mt-0.5 size-5 accent-[var(--primary)]"
+              className="mt-0.5 size-5 accent-[var(--foreground)]"
               checked={consent.reportLocation === "granted"}
               onChange={(event) => updateConsent({ reportLocation: event.target.checked ? "granted" : "denied" })}
             />
             <span>
-              <span className="flex items-center gap-1 font-medium text-foreground">
-                <MapPin className="size-3.5" />
-                Attach my location
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Shows you&apos;re on site, so your report counts more. Only your distance from the stop is kept —
-                never your coordinates.
+              <span className="block font-medium">Attach my location</span>
+              <span className="block text-muted-foreground">
+                Shows you&apos;re there, so the report counts more. Only your distance from the stop is kept.
               </span>
             </span>
           </label>
 
-          <Button size="lg" className="mt-4 w-full font-semibold" disabled={busy} onClick={() => void submit()}>
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+          <Button size="lg" className="mt-6 w-full" disabled={busy} onClick={() => void submit()}>
+            {busy && <Loader2 className="size-4 animate-spin" />}
             Send report
           </Button>
-          {error && <p className="mt-3 text-sm text-destructive" role="alert">{error}</p>}
+          {error && (
+            <p className="mt-3 text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          )}
         </section>
       )}
     </div>

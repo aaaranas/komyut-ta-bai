@@ -4,84 +4,72 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * "Island & sea" palette inspired by Cebu's coast and ferries — ocean teal
- * leads (primary actions, header, hero), warm sand gold is the brand mark and
- * gold accent, coral is reserved for alerts, and warm white/neutral grays
- * carry the surfaces. Soft aqua tints handle hover/active states.
+ * Monochrome chrome, so the only color on screen is information: transit
+ * line colors (see MODE_CONFIG) and live-condition signals. Type is
+ * Overpass, an open descendant of the Highway Gothic road-sign face.
  */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 
-  --background: oklch(0.99 0.005 180);
-  --foreground: oklch(0.22 0.02 215);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 215);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 215);
+  --background: #ffffff;
+  --foreground: #16181d;
+  --card: #ffffff;
+  --card-foreground: #16181d;
+  --popover: #ffffff;
+  --popover-foreground: #16181d;
 
-  /* Cebu ocean teal */
-  --primary: oklch(0.56 0.1 184);
-  --primary-foreground: oklch(0.99 0.02 190);
+  /* Interactive elements are ink, not a brand hue. */
+  --primary: #16181d;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.96 0.012 195);
-  --secondary-foreground: oklch(0.3 0.03 200);
-  --muted: oklch(0.97 0.01 195);
-  --muted-foreground: oklch(0.52 0.02 200);
+  --secondary: #f2f3f5;
+  --secondary-foreground: #16181d;
+  --muted: #f2f3f5;
+  --muted-foreground: #5f6670;
+  --accent: #eceef1;
+  --accent-foreground: #16181d;
 
-  /* Soft aqua — cool interaction accent (hover/active surfaces) */
-  --accent: oklch(0.95 0.035 190);
-  --accent-foreground: oklch(0.42 0.07 195);
+  --destructive: #c4321f;
+  --destructive-foreground: #ffffff;
 
-  /* Coral — alerts */
-  --destructive: oklch(0.66 0.17 33);
-  --destructive-foreground: oklch(0.99 0.01 60);
+  --border: #e3e5e8;
+  --input: #d5d9de;
+  --ring: #16181d;
 
-  --border: oklch(0.91 0.012 200);
-  --input: oklch(0.91 0.012 200);
-  --ring: oklch(0.56 0.1 184);
-
-  /* Warm sand gold for the brand mark (deep-teal glyph on gold = sea & sand) */
-  --gold: oklch(0.82 0.13 88);
-  --gold-foreground: oklch(0.3 0.05 200);
-
-  /* Legacy aliases so any unmigrated utility still resolves. */
-  --color-primary: var(--primary);
-  --color-primary-dark: oklch(0.46 0.09 185);
-  --color-primary-light: var(--accent);
+  /* Signals */
+  --live: #13804a;
+  --warn: #9a5b00;
+  --warn-soft: #fff5e1;
 }
 
 .dark {
-  --background: oklch(0.2 0.02 210);
-  --foreground: oklch(0.96 0.01 190);
-  --card: oklch(0.23 0.022 208);
-  --card-foreground: oklch(0.96 0.01 190);
-  --popover: oklch(0.23 0.022 208);
-  --popover-foreground: oklch(0.96 0.01 190);
+  --background: #121417;
+  --foreground: #eceef1;
+  --card: #181b1f;
+  --card-foreground: #eceef1;
+  --popover: #1c1f24;
+  --popover-foreground: #eceef1;
 
-  --primary: oklch(0.66 0.12 185);
-  --primary-foreground: oklch(0.99 0.02 190);
+  --primary: #eceef1;
+  --primary-foreground: #121417;
 
-  --secondary: oklch(0.3 0.02 205);
-  --secondary-foreground: oklch(0.96 0.01 190);
-  --muted: oklch(0.3 0.02 205);
-  --muted-foreground: oklch(0.72 0.02 198);
+  --secondary: #20242a;
+  --secondary-foreground: #eceef1;
+  --muted: #20242a;
+  --muted-foreground: #9aa1ab;
+  --accent: #262b32;
+  --accent-foreground: #eceef1;
 
-  --accent: oklch(0.34 0.04 190);
-  --accent-foreground: oklch(0.9 0.06 188);
+  --destructive: #f26b56;
+  --destructive-foreground: #121417;
 
-  --destructive: oklch(0.7 0.16 33);
-  --destructive-foreground: oklch(0.99 0.01 60);
+  --border: #2a2f36;
+  --input: #3a4049;
+  --ring: #eceef1;
 
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.66 0.12 185);
-
-  --gold: oklch(0.83 0.13 88);
-  --gold-foreground: oklch(0.24 0.04 205);
-
-  --color-primary: var(--primary);
-  --color-primary-dark: oklch(0.56 0.1 185);
-  --color-primary-light: var(--accent);
+  --live: #3fcf82;
+  --warn: #f2b65c;
+  --warn-soft: rgb(242 182 92 / 0.1);
 }
 
 @theme inline {
@@ -104,16 +92,16 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-gold: var(--gold);
-  --color-gold-foreground: var(--gold-foreground);
+  --color-live: var(--live);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
 
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-overpass), ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
 }
 
 @layer base {
@@ -123,14 +111,22 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-feature-settings: "cv05", "ss01";
   }
-  html {
-    scroll-behavior: smooth;
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-/* Slim scrollbars for the horizontal hub strips. */
+/* Slim scrollbars for horizontal strips. */
 .scrollbar-thin {
   scrollbar-width: thin;
 }
@@ -140,29 +136,4 @@
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: 9999px;
-}
-
-/*
- * Soft Cebu-toned gradient mesh for the landing page — airy blue and gold
- * glows rather than a busy texture. Adapts to light/dark via tokens.
- */
-.bg-landing {
-  background-color: var(--background);
-  background-image:
-    radial-gradient(
-      45% 40% at 12% 4%,
-      color-mix(in oklch, var(--primary) 18%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      40% 38% at 92% 8%,
-      color-mix(in oklch, var(--gold) 16%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      55% 50% at 50% 108%,
-      color-mix(in oklch, var(--primary) 12%, transparent),
-      transparent 70%
-    );
-  background-repeat: no-repeat;
 }

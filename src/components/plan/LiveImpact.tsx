@@ -1,9 +1,9 @@
 "use client";
 
-import { CircleCheck, Info, Route, TriangleAlert, WifiOff } from "lucide-react";
-import EventCard from "@/components/alerts/EventCard";
+import EventRow from "@/components/alerts/EventRow";
 import type { ConditionsStatus } from "@/components/providers/ConditionsProvider";
 import { useConditions } from "@/components/providers/ConditionsProvider";
+import { Segmented } from "@/components/ui/segmented";
 import type { Itinerary, PlanOutcome, RetimeOutcome } from "@/core/planner";
 import type { PublicEvent } from "@/core/snapshot";
 import { formatDuration } from "@/core/transit/time";
@@ -23,51 +23,48 @@ interface Props {
 const routeSignature = (itinerary: Itinerary) =>
   itinerary.legs.map((leg) => (leg.kind === "ride" ? leg.route.id : "walk")).join(">");
 
-function Banner({ tone, Icon, children }: { tone: "info" | "warn" | "ok"; Icon: typeof Info; children: React.ReactNode }) {
+function Notice({ tone, children }: { tone: "neutral" | "warn" | "ok"; children: React.ReactNode }) {
   return (
-    <div
+    <p
       className={cn(
-        "mt-4 flex gap-3 rounded-xl border px-4 py-3 text-sm",
-        tone === "warn" && "border-amber-300/60 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
-        tone === "ok" && "border-emerald-300/60 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100",
-        tone === "info" && "bg-muted/60 text-foreground"
+        "border-l-[3px] py-0.5 pl-3 text-sm",
+        tone === "warn" && "border-warn",
+        tone === "ok" && "border-live",
+        tone === "neutral" && "border-input text-muted-foreground"
       )}
     >
-      <Icon className="mt-0.5 size-4 shrink-0" />
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
+      {children}
+    </p>
   );
 }
 
 /**
- * Explains how live conditions changed this trip relative to the baseline
- * (curated data only), and keeps both estimates available side by side.
+ * How live conditions changed this trip relative to the baseline (route
+ * data only). Both estimates stay available.
  */
 export default function LiveImpact({ status, baseline, live, usualToday, view, onViewChange }: Props) {
   const { eventsById } = useConditions();
+  const lookup = (ids: string[]) => ids.map((id) => eventsById.get(id)).filter((e): e is PublicEvent => !!e);
 
-  if (status === "loading") {
-    return <Banner tone="info" Icon={Info}>Checking live conditions… showing the baseline estimate for now.</Banner>;
-  }
+  if (status === "loading") return <Notice tone="neutral">Checking live conditions.</Notice>;
   if (status === "unavailable" || !live) {
     return (
-      <Banner tone="warn" Icon={WifiOff}>
-        Live conditions are unavailable, so this is the <strong>baseline estimate</strong> from curated route data
-        only. Reports of delays or flooding are not reflected.
-      </Banner>
+      <Notice tone="warn">
+        Live conditions are unavailable, so this estimate uses route data only. Reported delays and flooding are not
+        included.
+      </Notice>
     );
   }
 
   const blockedIds = usualToday?.status === "blocked" ? usualToday.event_ids : [];
   if (live.status !== "ok") {
-    const events = blockedIds.map((id) => eventsById.get(id)).filter((e): e is PublicEvent => !!e);
     return (
-      <>
-        <Banner tone="warn" Icon={TriangleAlert}>
-          Every route we know passes a reported closure. Showing the usual route — expect disruption or wait it out.
-        </Banner>
-        <EventList events={events} />
-      </>
+      <div className="space-y-2">
+        <Notice tone="warn">
+          Every route we know passes a reported closure. This is the usual route; expect disruption or wait it out.
+        </Notice>
+        <EventList events={lookup(blockedIds)} />
+      </div>
     );
   }
 
@@ -75,65 +72,53 @@ export default function LiveImpact({ status, baseline, live, usualToday, view, o
   const rerouted = routeSignature(enriched) !== routeSignature(baseline);
   const usualMins = usualToday?.status === "ok" ? usualToday.itinerary.total_mins : null;
   const delta = Math.round(enriched.total_mins - baseline.total_mins);
-  const relevantIds = new Set([...enriched.event_ids, ...blockedIds, ...(usualToday?.status === "ok" ? usualToday.itinerary.event_ids : [])]);
-  const events = [...relevantIds].map((id) => eventsById.get(id)).filter((e): e is PublicEvent => !!e);
+  const events = lookup([
+    ...new Set([
+      ...enriched.event_ids,
+      ...blockedIds,
+      ...(usualToday?.status === "ok" ? usualToday.itinerary.event_ids : []),
+    ]),
+  ]);
+
+  if (events.length === 0) {
+    return (
+      <Notice tone="ok">
+        No verified problems reported on this trip{status === "stale" ? " (live data is not updating right now)" : ""}.
+      </Notice>
+    );
+  }
 
   return (
-    <>
-      {events.length === 0 ? (
-        <Banner tone="ok" Icon={CircleCheck}>
-          No verified disruptions on this trip{status === "stale" ? " (live data is not updating right now)" : ""}.
-        </Banner>
-      ) : rerouted ? (
-        <Banner tone="warn" Icon={Route}>
-          <strong>Rerouted around reported conditions.</strong>{" "}
-          {usualMins !== null
-            ? `Your usual route would take about ${formatDuration(usualMins)} right now (normally ${formatDuration(baseline.total_mins)}).`
-            : "Your usual route passes a reported closure."}
-        </Banner>
-      ) : (
-        <Banner tone="warn" Icon={TriangleAlert}>
-          Live conditions add about <strong>{formatDuration(Math.max(delta, 0))}</strong> to the baseline estimate of{" "}
-          {formatDuration(baseline.total_mins)}.
-        </Banner>
-      )}
-
-      {events.length > 0 && (
-        <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="group" aria-label="Estimate shown">
-          {(
-            [
-              ["live", "With live conditions", enriched.total_mins],
-              ["baseline", "Baseline (usual)", baseline.total_mins],
-            ] as const
-          ).map(([value, label, minutes]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={view === value}
-              onClick={() => onViewChange(value)}
-              className={cn(
-                "flex min-h-11 flex-col items-center justify-center rounded-md px-2 text-xs font-medium transition-colors",
-                view === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-              )}
-            >
-              {label}
-              <span className="text-sm font-bold tabular-nums">{formatDuration(minutes)}</span>
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="space-y-3">
+      <Notice tone="warn">
+        {rerouted
+          ? usualMins !== null
+            ? `Rerouted around reports. Your usual route would take ${formatDuration(usualMins)} right now.`
+            : "Rerouted around reports. Your usual route passes a reported closure."
+          : `Reports add about ${formatDuration(Math.max(delta, 0))} to the usual ${formatDuration(baseline.total_mins)}.`}
+      </Notice>
+      <Segmented
+        label="Estimate shown"
+        value={view}
+        onChange={onViewChange}
+        className="flex w-full"
+        options={[
+          { value: "live", label: `With reports, ${formatDuration(enriched.total_mins)}` },
+          { value: "baseline", label: `Usual, ${formatDuration(baseline.total_mins)}` },
+        ]}
+      />
       <EventList events={events} />
-    </>
+    </div>
   );
 }
 
 function EventList({ events }: { events: PublicEvent[] }) {
   if (events.length === 0) return null;
   return (
-    <ul className="mt-3 space-y-2">
+    <ul className="divide-y border-y">
       {events.map((event) => (
         <li key={event.id}>
-          <EventCard event={event} compact />
+          <EventRow event={event} variant="trip" />
         </li>
       ))}
     </ul>

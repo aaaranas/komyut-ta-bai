@@ -1,10 +1,9 @@
 "use client";
 
-import { BellRing, Info, Loader2, Megaphone, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import EventCard from "@/components/alerts/EventCard";
+import EventRow from "@/components/alerts/EventRow";
 import HazardPanel from "@/components/alerts/HazardPanel";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 const ConditionsMapCanvas = dynamic(() => import("@/components/alerts/ConditionsMapCanvas"), {
   ssr: false,
-  loading: () => <div className="h-64 w-full animate-pulse rounded-2xl border bg-muted sm:h-80" />,
+  loading: () => <div className="h-64 w-full rounded-xl bg-muted md:h-full" />,
 });
 
 export default function AlertsView() {
@@ -26,12 +25,16 @@ export default function AlertsView() {
   const [filter, setFilter] = useState<ReportCategory | "all">("all");
   const [refreshing, setRefreshing] = useState(false);
 
+  const all = useMemo(() => snapshot?.events ?? [], [snapshot]);
   const events = useMemo(
     () =>
-      (snapshot?.events ?? [])
+      all
         .filter((event) => filter === "all" || event.category === filter)
-        .sort((a, b) => Number(b.status === "corroborated") - Number(a.status === "corroborated") || b.confidence - a.confidence),
-    [snapshot, filter]
+        .sort(
+          (a, b) =>
+            Number(b.status === "corroborated") - Number(a.status === "corroborated") || b.confidence - a.confidence
+        ),
+    [all, filter]
   );
 
   const markers = events.flatMap((event) => {
@@ -43,7 +46,7 @@ export default function AlertsView() {
         lng: stop.lng,
         lat: stop.lat,
         color: CATEGORY_CONFIG[event.category].hex,
-        label: `${eventHeadline(event.category, event.details)} — ${stop.name}`,
+        label: `${eventHeadline(event.category, event.details)}, ${stop.name}`,
         strong: event.status === "corroborated",
       },
     ];
@@ -55,44 +58,41 @@ export default function AlertsView() {
     setRefreshing(false);
   };
 
+  const countOf = (category: ReportCategory) => all.filter((event) => event.category === category).length;
+
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-12 pt-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 pt-8">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
-            <BellRing className="size-6 text-primary" />
-            Live conditions
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Verified commuter reports and official readings that are changing route recommendations.
-            {snapshot && ` Updated ${formatAge((now.getTime() - new Date(snapshot.generated_at).getTime()) / 60_000)}.`}
+          <h1 className="text-[2rem] font-extrabold leading-tight tracking-[-0.025em]">Alerts</h1>
+          <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+            Verified reports that are changing routes right now.
+            {snapshot && ` Updated ${formatAge((now.getTime() - new Date(snapshot.generated_at).getTime()) / 60_000)}.`}{" "}
+            <button
+              type="button"
+              onClick={() => void handleRefresh()}
+              disabled={refreshing}
+              className="font-medium text-foreground underline underline-offset-4 disabled:opacity-60"
+            >
+              {refreshing ? "Refreshing" : "Refresh"}
+            </button>
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={refreshing}>
-            <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
-            Refresh
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/report">
-              <Megaphone className="size-4" />
-              Report
-            </Link>
-          </Button>
-        </div>
+        <Button asChild size="sm" className="shrink-0">
+          <Link href="/report">Report</Link>
+        </Button>
       </div>
 
       {snapshot?.storage === "temporary" && (
-        <p className="mt-4 flex gap-2 rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-          <Info className="mt-0.5 size-3.5 shrink-0" />
-          This deployment keeps reports in temporary storage; they may reset when the server restarts.
+        <p className="mt-4 border-l-[3px] border-warn pl-3 text-sm">
+          Reports on this server are kept in temporary storage and may reset when it restarts.
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div role="group" aria-label="Filter by type" className="scrollbar-thin -mx-4 mt-6 flex gap-1.5 overflow-x-auto px-4">
         {(["all", ...REPORT_CATEGORIES] as const).map((key) => {
           const active = filter === key;
-          const label = key === "all" ? "All" : CATEGORY_CONFIG[key].label;
+          const count = key === "all" ? all.length : countOf(key);
           return (
             <button
               key={key}
@@ -100,52 +100,58 @@ export default function AlertsView() {
               aria-pressed={active}
               onClick={() => setFilter(key)}
               className={cn(
-                "min-h-9 rounded-full border px-3.5 text-sm font-medium transition-colors",
-                active ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"
+                "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors",
+                active ? "border-foreground bg-foreground text-background" : "border-input hover:bg-accent"
               )}
             >
-              {label}
+              {key !== "all" && (
+                <span className="size-2 rounded-full" style={{ backgroundColor: CATEGORY_CONFIG[key].hex }} aria-hidden="true" />
+              )}
+              {key === "all" ? "All" : CATEGORY_CONFIG[key].label}
+              <span className={cn("tabular-nums", active ? "text-background/70" : "text-muted-foreground")}>{count}</span>
             </button>
           );
         })}
       </div>
 
       {status === "loading" ? (
-        <p className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          Loading live conditions…
-        </p>
+        <p className="mt-8 text-sm text-muted-foreground">Checking conditions…</p>
       ) : status === "unavailable" ? (
-        <p className="mt-10 text-center text-sm text-muted-foreground">
-          Live conditions can&apos;t be reached right now. Trip plans still work from the baseline dataset.
+        <p className="mt-8 text-sm text-muted-foreground">
+          Live conditions can&apos;t be reached right now. Trip plans still work from route data.
         </p>
       ) : (
-        <div className="mt-5 lg:grid lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-6">
-          <div className="lg:sticky lg:top-20">
-            <ConditionsMapCanvas markers={markers} />
+        <div className="mt-5 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-10">
+          <div className="md:order-2">
+            <div className="h-64 md:sticky md:top-20 md:h-[calc(100dvh-8rem)]">
+              <ConditionsMapCanvas markers={markers} />
+            </div>
           </div>
-          <div className="mt-4 lg:mt-0">
+          <div className="mt-4 md:order-1 md:mt-0">
             {events.length === 0 ? (
-              <div className="rounded-2xl border border-dashed p-6 text-center">
-                <p className="text-sm font-semibold text-foreground">No verified disruptions right now</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  An empty feed means nothing verified has been reported — not that every road is clear.
+              <div className="py-6">
+                <p className="text-sm font-semibold">Nothing verified right now</p>
+                <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+                  That means no confirmed reports, not that every road is clear. Seeing a problem?{" "}
+                  <Link href="/report" className="font-medium text-foreground underline underline-offset-4">
+                    Report it
+                  </Link>
+                  .
                 </p>
               </div>
             ) : (
-              <ul className="space-y-3">
+              <ul className="divide-y border-y">
                 {events.map((event) => (
                   <li key={event.id}>
-                    <EventCard event={event} />
+                    <EventRow event={event} />
                   </li>
                 ))}
               </ul>
             )}
+            {snapshot && <HazardPanel hazards={snapshot.hazards} />}
           </div>
         </div>
       )}
-
-      {snapshot && <HazardPanel hazards={snapshot.hazards} />}
     </main>
   );
 }

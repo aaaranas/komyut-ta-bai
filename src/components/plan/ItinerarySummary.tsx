@@ -1,26 +1,14 @@
 "use client";
 
-import { ChevronDown, Clock, Coins } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, Footprints } from "lucide-react";
+import { Fragment, useState } from "react";
+import RoutePlate from "@/components/common/RoutePlate";
 import ShareTripButton from "@/components/plan/ShareTripButton";
 import type { Itinerary } from "@/core/planner";
 import { formatPeso } from "@/core/transit/fare";
 import { formatClock, formatDuration } from "@/core/transit/time";
 import type { Stop } from "@/core/transit/types";
-import { MODE_CONFIG } from "@/lib/presentation";
-
-function Stat({ Icon, label, value, note }: { Icon: typeof Clock; label: string; value: string; note: string }) {
-  return (
-    <div className="flex-1">
-      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-primary-foreground/80">
-        <Icon className="size-3.5" />
-        {label}
-      </p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
-      <p className="text-xs text-primary-foreground/75">{note}</p>
-    </div>
-  );
-}
+import { routeTitle } from "@/lib/presentation";
 
 interface Props {
   itinerary: Itinerary;
@@ -28,73 +16,80 @@ interface Props {
   destination: Stop;
 }
 
+/** The two numbers a commuter decides on, then the vehicles in order. */
 export default function ItinerarySummary({ itinerary, origin, destination }: Props) {
-  const [showBreakdown, setShowBreakdown] = useState(false);
-  const parts = [
+  const [showFares, setShowFares] = useState(false);
+  const breakdown = [
     `${formatDuration(itinerary.riding_mins)} riding`,
     itinerary.waiting_mins >= 1 && `${formatDuration(itinerary.waiting_mins)} waiting`,
     itinerary.walking_mins >= 1 && `${formatDuration(itinerary.walking_mins)} walking`,
   ].filter(Boolean);
+  const rides = itinerary.legs.filter((leg) => leg.kind === "ride");
 
   return (
-    <div className="mt-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 px-5 py-4 text-primary-foreground shadow-sm">
-      <div className="flex items-start">
-        <Stat
-          Icon={Clock}
-          label="Total time"
-          value={formatDuration(itinerary.total_mins)}
-          note={`${formatClock(itinerary.depart_at)} → ${formatClock(itinerary.arrive_at)}`}
-        />
-        <div className="mx-4 h-14 w-px self-center bg-primary-foreground/20" />
-        <Stat
-          Icon={Coins}
-          label="Total fare"
-          value={formatPeso(itinerary.fare)}
-          note={`${formatPeso(itinerary.discounted_fare)} student/senior/PWD`}
-        />
+    <section aria-label="Trip summary">
+      <div className="flex items-end justify-between gap-6">
+        <div>
+          <p className="text-[2.5rem] font-extrabold leading-none tracking-[-0.03em] tabular-nums">
+            {formatDuration(itinerary.total_mins)}
+          </p>
+          <p className="mt-2 text-sm tabular-nums text-muted-foreground">
+            {formatClock(itinerary.depart_at)} to {formatClock(itinerary.arrive_at)}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-extrabold leading-none tabular-nums">{formatPeso(itinerary.fare)}</p>
+          <p className="mt-2 text-sm tabular-nums text-muted-foreground">{formatPeso(itinerary.discounted_fare)} discounted</p>
+        </div>
       </div>
 
-      <p className="mt-3 text-xs text-primary-foreground/80">{parts.join(" · ")}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-1.5" aria-label="Vehicles in order">
+        {itinerary.legs.map((leg, index) => (
+          <Fragment key={index}>
+            {index > 0 && <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden="true" />}
+            {leg.kind === "ride" ? (
+              <RoutePlate route={leg.route} size="sm" />
+            ) : (
+              <Footprints className="size-4 text-muted-foreground" aria-label={`Walk ${formatDuration(leg.minutes)}`} />
+            )}
+          </Fragment>
+        ))}
+      </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-primary-foreground/15 pt-2">
-        <p className="text-xs text-primary-foreground/80">
-          {itinerary.rides} ride{itinerary.rides === 1 ? "" : "s"}
-        </p>
-        <div className="flex items-center gap-2">
-          <ShareTripButton origin={origin} destination={destination} itinerary={itinerary} />
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm">
+        <p className="text-muted-foreground">{breakdown.join(", ")}</p>
+        <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => setShowBreakdown((open) => !open)}
-            aria-expanded={showBreakdown}
-            className="flex min-h-9 items-center gap-1 text-xs text-primary-foreground/80 hover:text-primary-foreground"
+            onClick={() => setShowFares((open) => !open)}
+            aria-expanded={showFares}
+            className="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            Fares
-            <ChevronDown className={`size-3.5 transition-transform ${showBreakdown ? "rotate-180" : ""}`} />
+            {showFares ? "Hide fares" : "Fares"}
           </button>
+          <ShareTripButton origin={origin} destination={destination} itinerary={itinerary} />
         </div>
       </div>
 
-      {showBreakdown && (
-        <div className="mt-2 space-y-1.5 rounded-xl bg-black/15 p-3">
-          {itinerary.legs.map((leg, index) => {
-            if (leg.kind !== "ride") return null;
-            const config = MODE_CONFIG[leg.route.mode];
-            return (
-              <div key={index} className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${config.badge}`}>{config.label}</span>
-                  <span className="truncate text-xs text-primary-foreground/80">{leg.route.name}</span>
-                </div>
-                <span className="shrink-0 text-xs font-semibold">{formatPeso(leg.fare)}</span>
+      {showFares && (
+        <dl className="mt-3 divide-y border-y text-sm">
+          {rides.map((leg, index) =>
+            leg.kind === "ride" ? (
+              <div key={index} className="flex items-center justify-between gap-3 py-2">
+                <dt className="flex min-w-0 items-center gap-2">
+                  <RoutePlate route={leg.route} size="sm" />
+                  <span className="truncate">{routeTitle(leg.route)}</span>
+                </dt>
+                <dd className="tabular-nums">{formatPeso(leg.fare)}</dd>
               </div>
-            );
-          })}
-          <div className="mt-1 flex items-center justify-between border-t border-primary-foreground/15 pt-1.5">
-            <span className="text-xs font-semibold text-primary-foreground/80">Total</span>
-            <span className="text-sm font-bold">{formatPeso(itinerary.fare)}</span>
+            ) : null
+          )}
+          <div className="flex justify-between py-2 font-semibold">
+            <dt>Total</dt>
+            <dd className="tabular-nums">{formatPeso(itinerary.fare)}</dd>
           </div>
-        </div>
+        </dl>
       )}
-    </div>
+    </section>
   );
 }

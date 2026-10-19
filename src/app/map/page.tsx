@@ -48,13 +48,10 @@ export default function NetworkMapPage() {
   }));
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-12 pt-6">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">
-        MyBus network map
-      </h1>
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-16 pt-8">
+      <h1 className="text-[2rem] font-extrabold leading-tight tracking-[-0.025em]">MyBus network</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        All MyBus lines, traced along the roads they actually run. Tap a route
-        in the legend to show or hide it.
+        Every MyBus line along the roads it runs. Tap a route below to show or hide it.
       </p>
       <div className="mt-4">
         <NetworkMap layers={layers} legend={legend} stops={stops} />

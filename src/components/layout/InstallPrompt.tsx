@@ -45,14 +45,10 @@ export default function InstallPrompt() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-50 border-t md:bottom-0 bg-card/95 p-4 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
-      <div className="mx-auto flex max-w-md items-center gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-          <Download className="size-5" />
-        </span>
-        <p className="flex-1 text-sm text-foreground">
-          Install Komyut ta Bai on your phone for quick trip planning and reporting.
-        </p>
+    <div className="fixed inset-x-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-50 border-t bg-background md:bottom-0">
+      <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2.5">
+        <Download className="size-4 shrink-0 text-muted-foreground" />
+        <p className="flex-1 text-sm text-foreground">Add Komyut ta Bai to your home screen.</p>
         <Button type="button" size="sm" onClick={accept}>
           Install
         </Button>
