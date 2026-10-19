@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronRight, Footprints } from "lucide-react";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import RoutePlate from "@/components/common/RoutePlate";
 import ShareTripButton from "@/components/plan/ShareTripButton";
 import type { Itinerary } from "@/core/planner";
@@ -43,18 +42,16 @@ export default function ItinerarySummary({ itinerary, origin, destination }: Pro
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-1.5" aria-label="Vehicles in order">
-        {itinerary.legs.map((leg, index) => (
-          <Fragment key={index}>
-            {index > 0 && <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden="true" />}
-            {leg.kind === "ride" ? (
+      <ol className="mt-4 flex flex-wrap items-center gap-y-2" aria-label="Vehicles in order">
+        {rides.map((leg, index) =>
+          leg.kind === "ride" ? (
+            <li key={index} className="flex items-center">
+              {index > 0 && <span className="mx-1.5 h-0.5 w-3 rounded-full bg-input" aria-hidden="true" />}
               <RoutePlate route={leg.route} size="sm" />
-            ) : (
-              <Footprints className="size-4 text-muted-foreground" aria-label={`Walk ${formatDuration(leg.minutes)}`} />
-            )}
-          </Fragment>
-        ))}
-      </div>
+            </li>
+          ) : null
+        )}
+      </ol>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm">
         <p className="text-muted-foreground">{breakdown.join(", ")}</p>

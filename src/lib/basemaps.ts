@@ -1,95 +1,61 @@
 import type maplibregl from "maplibre-gl";
 
+export type MapTheme = "light" | "dark";
+
 /**
- * Selectable raster basemaps. All are free and need no API key. (Live traffic
- * tiles would require a paid keyed provider, so they're not offered here.)
+ * Selectable basemaps, all keyless. The default is OpenFreeMap's muted
+ * vector style matching the app theme (Positron or Dark), so transit lines
+ * and alerts stay the loudest things on the map.
  */
 export interface Basemap {
   id: string;
   label: string;
-  tiles: string[];
-  attribution: string;
-  maxzoom: number;
+  style: (theme: MapTheme) => string | maplibregl.StyleSpecification;
+}
+
+function raster(tiles: string[], attribution: string, maxzoom: number): maplibregl.StyleSpecification {
+  return {
+    version: 8,
+    sources: { basemap: { type: "raster", tiles, tileSize: 256, attribution, maxzoom } },
+    layers: [{ id: "basemap", type: "raster", source: "basemap" }],
+  };
 }
 
 export const BASEMAPS: Basemap[] = [
   {
+    id: "minimal",
+    label: "Map",
+    style: (theme) => `https://tiles.openfreemap.org/styles/${theme === "dark" ? "dark" : "positron"}`,
+  },
+  {
     id: "streets",
     label: "Streets",
-    tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-    attribution: "© OpenStreetMap contributors",
-    maxzoom: 19,
+    style: () => raster(["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], "© OpenStreetMap contributors", 19),
   },
   {
     id: "satellite",
     label: "Satellite",
-    tiles: [
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    ],
-    attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
-    maxzoom: 19,
-  },
-  {
-    id: "terrain",
-    label: "Terrain",
-    tiles: [
-      "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
-      "https://b.tile.opentopomap.org/{z}/{x}/{y}.png",
-      "https://c.tile.opentopomap.org/{z}/{x}/{y}.png",
-    ],
-    attribution: "© OpenStreetMap, SRTM | © OpenTopoMap (CC-BY-SA)",
-    maxzoom: 17,
+    style: () =>
+      raster(
+        ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+        "Imagery © Esri, Maxar, Earthstar Geographics",
+        19
+      ),
   },
 ];
 
-export const DEFAULT_BASEMAP_ID = "streets";
+export const DEFAULT_BASEMAP_ID = "minimal";
 
 /** Cebu City center, the default view before fitting to content. */
 export const MAP_DEFAULT_CENTER: [number, number] = [123.8854, 10.3157];
 export const MAP_DEFAULT_ZOOM = 10;
 
-const SOURCE_ID = "basemap";
-const LAYER_ID = "basemap";
-
-export function getBasemap(id: string): Basemap {
-  return BASEMAPS.find((b) => b.id === id) ?? BASEMAPS[0];
+/** The map style for a basemap id in the given theme. */
+export function basemapStyle(id: string, theme: MapTheme): string | maplibregl.StyleSpecification {
+  return (BASEMAPS.find((basemap) => basemap.id === id) ?? BASEMAPS[0]).style(theme);
 }
 
-/** Initial map style with the chosen basemap as the only (bottom) layer. */
-export function rasterStyle(basemap: Basemap): maplibregl.StyleSpecification {
-  return {
-    version: 8,
-    sources: {
-      [SOURCE_ID]: {
-        type: "raster",
-        tiles: basemap.tiles,
-        tileSize: 256,
-        attribution: basemap.attribution,
-        maxzoom: basemap.maxzoom,
-      },
-    },
-    layers: [{ id: LAYER_ID, type: "raster", source: SOURCE_ID }],
-  };
-}
-
-/**
- * Swaps the basemap in place, keeping it beneath any overlay layers (route
- * lines, markers) that were added on top.
- */
-export function applyBasemap(map: maplibregl.Map, basemap: Basemap): void {
-  const firstOverlay = map
-    .getStyle()
-    .layers.find((layer) => layer.id !== LAYER_ID)?.id;
-
-  if (map.getLayer(LAYER_ID)) map.removeLayer(LAYER_ID);
-  if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
-
-  map.addSource(SOURCE_ID, {
-    type: "raster",
-    tiles: basemap.tiles,
-    tileSize: 256,
-    attribution: basemap.attribution,
-    maxzoom: basemap.maxzoom,
-  });
-  map.addLayer({ id: LAYER_ID, type: "raster", source: SOURCE_ID }, firstOverlay);
+/** Casing color drawn under route lines so they read on either theme. */
+export function casingColor(theme: MapTheme): string {
+  return theme === "dark" ? "#121417" : "#ffffff";
 }

@@ -11,6 +11,12 @@ export const ADVISORY_DEFAULT_VALIDITY_MINS = 6 * 60;
 /** Readings this far above threshold indicate impassable flooding. */
 const IMPASSABLE_RATIO = 1.5;
 
+/** Identity of the station or issuing area behind an official record. */
+export function stationKey(observation: OfficialObservation): string {
+  const { lat, lng } = observation.area;
+  return `official:${observation.source}:${lat.toFixed(3)},${lng.toFixed(3)}`;
+}
+
 /** Temporal interpretation: is the record still describing the present? */
 export function isActive(observation: OfficialObservation, now: Date): boolean {
   const observed = new Date(observation.observed_at).getTime();
@@ -53,7 +59,9 @@ export function officialEvidence(
       return affectedStops(observation, stops).map(
         (stop): Evidence => ({
           id: `${observation.id}@${stop.id}`,
-          source_key: `official:${observation.source}:${observation.id}`,
+          // One station (source + location) is one independent source,
+          // however many readings it posts.
+          source_key: stationKey(observation),
           origin: "official",
           kind: "observation",
           category: "flooding",

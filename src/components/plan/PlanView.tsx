@@ -79,6 +79,9 @@ export default function PlanView() {
   const liveItinerary = live?.status === "ok" ? live.itinerary : null;
   const baselineItinerary = baseline.status === "ok" ? baseline.itinerary : null;
   const shown = view === "baseline" || !liveItinerary ? baselineItinerary : liveItinerary;
+  const mapEventIds = [
+    ...new Set([...(shown?.event_ids ?? []), ...(usualToday?.status === "blocked" ? usualToday.event_ids : [])]),
+  ];
   const dateLabel = departure.isNow
     ? "Leaving now"
     : `Leaving ${departure.date.toLocaleDateString("en-PH", { weekday: "long", month: "short", day: "numeric" })}`;
@@ -143,7 +146,7 @@ export default function PlanView() {
               </div>
               {!wide && (
                 <div className="mt-6">
-                  <JourneyMap itinerary={shown} className="h-56" />
+                  <JourneyMap itinerary={shown} eventIds={mapEventIds} className="h-56" />
                 </div>
               )}
               <div className="mt-6 border-t pt-4">
@@ -160,7 +163,7 @@ export default function PlanView() {
         {wide && shown && origin && destination && baseline.status === "ok" && (
           <div>
             <div className="sticky top-20 mt-12 h-[calc(100dvh-8rem)]">
-              <JourneyMap itinerary={shown} className="h-full" />
+              <JourneyMap itinerary={shown} eventIds={mapEventIds} className="h-full" />
             </div>
           </div>
         )}

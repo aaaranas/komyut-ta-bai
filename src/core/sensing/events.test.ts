@@ -158,6 +158,14 @@ describe("official evidence", () => {
     assert.equal(officialEvidence([reading("live", 0.5)], stops, NOW).length, 0);
   });
 
+  it("counts repeated readings from one station as one source", () => {
+    const first = { ...reading("manual", 2), id: "o-first" };
+    const second = { ...reading("manual", 2), id: "o-second" };
+    const [event] = deriveEvents(officialEvidence([first, second], stops, NOW), NOW);
+    assert.equal(event.independent_sources, 1);
+    assert.equal(event.status, "uncertain");
+  });
+
   it("never blocks on a single source, however credible", () => {
     const [event] = deriveEvents(officialEvidence([reading("live", 2)], stops, NOW), NOW);
     assert.equal(event.status, "corroborated");

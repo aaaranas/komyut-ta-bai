@@ -7,24 +7,36 @@ import { useConditions } from "@/components/providers/ConditionsProvider";
 import type { Itinerary } from "@/core/planner";
 import { getStop } from "@/core/transit/catalog";
 import type { Stop } from "@/core/transit/types";
-import { DEFAULT_BASEMAP_ID, getBasemap, rasterStyle } from "@/lib/basemaps";
+import { useMapTheme } from "@/hooks/useMapTheme";
+import { casingColor, DEFAULT_BASEMAP_ID, basemapStyle } from "@/lib/basemaps";
+import { dotMarker, endpointMarker } from "@/lib/map-markers";
 import { CATEGORY_CONFIG, MODE_CONFIG } from "@/lib/presentation";
 import { cn } from "@/lib/utils";
 
 function popupHtml(title: string, subtitle: string): string {
   const escape = (text: string) =>
     text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-  return `<strong>${escape(title)}</strong><br/><span style="font-size:12px;color:#64748b">${escape(subtitle)}</span>`;
+  return `<strong>${escape(title)}</strong><br/><span class="map-popup-sub">${escape(subtitle)}</span>`;
 }
 
 /** Each leg drawn through the stops it actually visits, plus events on the trip. */
-export default function JourneyMap({ itinerary, className }: { itinerary: Itinerary; className?: string }) {
+export default function JourneyMap({
+  itinerary,
+  eventIds = itinerary.event_ids,
+  className,
+}: {
+  itinerary: Itinerary;
+  /** Events to mark: those on this trip plus any that blocked the usual one. */
+  eventIds?: string[];
+  className?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { eventsById } = useConditions();
+  const theme = useMapTheme();
   // Serialized so the map only rebuilds when this trip's events change,
   // not on every conditions poll.
   const eventMarkers = JSON.stringify(
-    itinerary.event_ids.flatMap((id) => {
+    eventIds.flatMap((id) => {
       const event = eventsById.get(id);
       const stop = event ? getStop(event.stop_id) : undefined;
       if (!event || !stop) return [];
@@ -37,7 +49,7 @@ export default function JourneyMap({ itinerary, className }: { itinerary: Itiner
     if (!containerRef.current || itinerary.legs.length === 0) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: rasterStyle(getBasemap(DEFAULT_BASEMAP_ID)),
+      style: basemapStyle(DEFAULT_BASEMAP_ID, theme),
       attributionControl: { compact: true },
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -57,6 +69,15 @@ export default function JourneyMap({ itinerary, className }: { itinerary: Itiner
           type: "geojson",
           data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates } },
         });
+        if (!isWalk) {
+          map.addLayer({
+            id: `leg-${index}-casing`,
+            type: "line",
+            source: `leg-${index}`,
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": casingColor(theme), "line-width": 8.5 },
+          });
+        }
         map.addLayer({
           id: `leg-${index}`,
           type: "line",
@@ -64,33 +85,39 @@ export default function JourneyMap({ itinerary, className }: { itinerary: Itiner
           layout: { "line-cap": "round", "line-join": "round" },
           paint: {
             "line-color": isWalk ? MODE_CONFIG.walk.hex : MODE_CONFIG[leg.route.mode].hex,
-            "line-width": isWalk ? 2.5 : 4.5,
-            ...(isWalk ? { "line-dasharray": [2, 2.5] } : {}),
+            "line-width": isWalk ? 3 : 5,
+            ...(isWalk ? { "line-dasharray": [0.5, 1.8] } : {}),
           },
         });
       });
 
       const origin = itinerary.legs[0].from;
       const destination = itinerary.legs[itinerary.legs.length - 1].to;
+      // Transfer points between legs, then the two ends on top.
+      for (const leg of itinerary.legs.slice(1)) {
+        markers.push(
+          new maplibregl.Marker({ element: dotMarker("var(--foreground)", 12, false) })
+            .setLngLat([leg.from.lng, leg.from.lat])
+            .setPopup(new maplibregl.Popup({ offset: 10 }).setHTML(popupHtml(leg.from.name, leg.from.municipality)))
+            .addTo(map)
+        );
+      }
       markers.push(
-        new maplibregl.Marker({ color: "#16181D" })
+        new maplibregl.Marker({ element: endpointMarker("origin") })
           .setLngLat([origin.lng, origin.lat])
-          .setPopup(new maplibregl.Popup({ offset: 26 }).setHTML(popupHtml(origin.name, origin.municipality)))
+          .setPopup(new maplibregl.Popup({ offset: 12 }).setHTML(popupHtml(origin.name, origin.municipality)))
           .addTo(map),
-        new maplibregl.Marker({ color: "#16181D", scale: 0.8 })
+        new maplibregl.Marker({ element: endpointMarker("destination") })
           .setLngLat([destination.lng, destination.lat])
-          .setPopup(new maplibregl.Popup({ offset: 26 }).setHTML(popupHtml(destination.name, destination.municipality)))
+          .setPopup(new maplibregl.Popup({ offset: 12 }).setHTML(popupHtml(destination.name, destination.municipality)))
           .addTo(map)
       );
 
       const events: { lng: number; lat: number; color: string; label: string; place: string }[] =
         JSON.parse(eventMarkers);
       for (const event of events) {
-        const element = document.createElement("div");
-        element.className = "size-5 rounded-full border-2 border-white shadow";
-        element.style.backgroundColor = event.color;
         markers.push(
-          new maplibregl.Marker({ element })
+          new maplibregl.Marker({ element: dotMarker(event.color, 18) })
             .setLngLat([event.lng, event.lat])
             .setPopup(new maplibregl.Popup({ offset: 14 }).setHTML(popupHtml(event.label, event.place)))
             .addTo(map)
@@ -104,7 +131,7 @@ export default function JourneyMap({ itinerary, className }: { itinerary: Itiner
       markers.forEach((marker) => marker.remove());
       map.remove();
     };
-  }, [itinerary, eventMarkers]);
+  }, [itinerary, eventMarkers, theme]);
 
   return (
     <div

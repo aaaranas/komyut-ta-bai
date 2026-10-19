@@ -3,16 +3,10 @@
 import { BASEMAPS } from "@/lib/basemaps";
 import { cn } from "@/lib/utils";
 
-/** Small overlay control to switch the map's basemap (streets/satellite/…). */
-export default function BasemapSwitcher({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (id: string) => void;
-}) {
+/** Overlay control to switch the basemap. */
+export default function BasemapSwitcher({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   return (
-    <div className="absolute left-2 top-2 z-10 flex gap-0.5 rounded-lg border bg-card/90 p-0.5 shadow-sm backdrop-blur">
+    <div role="group" aria-label="Basemap" className="absolute left-2 top-2 z-10 flex rounded-lg border bg-background/95 p-0.5">
       {BASEMAPS.map((basemap) => (
         <button
           key={basemap.id}
@@ -20,10 +14,8 @@ export default function BasemapSwitcher({
           onClick={() => onChange(basemap.id)}
           aria-pressed={value === basemap.id}
           className={cn(
-            "rounded-md px-2 py-1 text-xs font-medium transition-colors",
-            value === basemap.id
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+            value === basemap.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
           )}
         >
           {basemap.label}

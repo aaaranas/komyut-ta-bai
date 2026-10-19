@@ -4,86 +4,47 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import BasemapSwitcher from "@/components/map/BasemapSwitcher";
-import {
-  applyBasemap,
-  DEFAULT_BASEMAP_ID,
-  getBasemap,
-  MAP_DEFAULT_CENTER,
-  MAP_DEFAULT_ZOOM,
-  rasterStyle,
-} from "@/lib/basemaps";
 import type { Stop } from "@/core/transit/types";
+import { useMapTheme } from "@/hooks/useMapTheme";
+import {
+  casingColor,
+  DEFAULT_BASEMAP_ID,
+    MAP_DEFAULT_CENTER,
+  MAP_DEFAULT_ZOOM,
+  basemapStyle,
+  type MapTheme,
+} from "@/lib/basemaps";
+import { dotMarker, endpointMarker } from "@/lib/map-markers";
 
-function createMap(container: HTMLDivElement): maplibregl.Map {
-  const map = new maplibregl.Map({
-    container,
-    style: rasterStyle(getBasemap(DEFAULT_BASEMAP_ID)),
-    center: MAP_DEFAULT_CENTER,
-    zoom: MAP_DEFAULT_ZOOM,
-    attributionControl: { compact: true },
-  });
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
-  return map;
-}
-
-function addStopMarkers(
-  map: maplibregl.Map,
-  stops: Stop[],
-  color: string
-): maplibregl.Marker[] {
-  return stops.map((stop) => {
-    const element = document.createElement("div");
-    element.style.cssText = `width:12px;height:12px;border-radius:9999px;background:#fff;border:3px solid ${color}`;
-    return new maplibregl.Marker({ element })
-      .setLngLat([stop.lng, stop.lat])
-      .setPopup(new maplibregl.Popup({ offset: 10 }).setText(`${stop.name}, ${stop.municipality}`))
-      .addTo(map);
-  });
-}
-
-function addRouteLine(
-  map: maplibregl.Map,
-  stops: Stop[],
-  color: string,
-  path?: [number, number][]
-): void {
-  // Prefer a road-following polyline when supplied; otherwise connect stops.
-  const coordinates =
-    path && path.length >= 2 ? path : stops.map((stop) => [stop.lng, stop.lat]);
-  if (coordinates.length < 2) return;
-  // A solid line reads as the real road path; dashed implies "approximate".
+function addRouteLine(map: maplibregl.Map, stops: Stop[], color: string, theme: MapTheme, path?: [number, number][]) {
+  // Prefer a road-following polyline; otherwise connect the stops.
   const isRoadPath = Boolean(path && path.length >= 2);
+  const coordinates = isRoadPath ? path! : stops.map((stop) => [stop.lng, stop.lat]);
+  if (coordinates.length < 2) return;
   map.addSource("route-line", {
     type: "geojson",
-    data: {
-      type: "Feature",
-      properties: {},
-      geometry: { type: "LineString", coordinates },
-    },
+    data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates } },
+  });
+  map.addLayer({
+    id: "route-casing",
+    type: "line",
+    source: "route-line",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": casingColor(theme), "line-width": 8 },
   });
   map.addLayer({
     id: "route-line",
     type: "line",
     source: "route-line",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: {
-      "line-color": color,
-      "line-width": 4,
-      ...(isRoadPath ? {} : { "line-dasharray": [1, 1.5] }),
-    },
+    // Dashed where only straight stop-to-stop links are known.
+    paint: { "line-color": color, "line-width": 4.5, ...(isRoadPath ? {} : { "line-dasharray": [1.5, 1.2] }) },
   });
-}
-
-function fitMapToStops(map: maplibregl.Map, stops: Stop[]): void {
-  if (stops.length === 0) return;
-  const bounds = new maplibregl.LngLatBounds();
-  for (const stop of stops) bounds.extend([stop.lng, stop.lat]);
-  map.fitBounds(bounds, { padding: 48, maxZoom: 13, duration: 0 });
 }
 
 interface RouteMapCanvasProps {
   stops: Stop[];
-  /** Line/marker color, typically the route's mode color. */
+  /** The route's line color. */
   color: string;
   /** Optional road-following polyline; falls back to straight stop links. */
   path?: [number, number][];
@@ -92,43 +53,48 @@ interface RouteMapCanvasProps {
 
 export default function RouteMapCanvas({ stops, color, path, className }: RouteMapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const theme = useMapTheme();
   const [basemapId, setBasemapId] = useState(DEFAULT_BASEMAP_ID);
 
   useEffect(() => {
     if (!containerRef.current) return;
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: basemapStyle(basemapId, theme),
+      center: MAP_DEFAULT_CENTER,
+      zoom: MAP_DEFAULT_ZOOM,
+      attributionControl: { compact: true },
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
 
-    const map = createMap(containerRef.current);
-    mapRef.current = map;
-    const markers = addStopMarkers(map, stops, color);
+    const markers = stops.map((stop, index) => {
+      const isEnd = index === 0 || index === stops.length - 1;
+      const element = isEnd ? endpointMarker(index === 0 ? "origin" : "destination") : dotMarker(color, 11, false);
+      return new maplibregl.Marker({ element })
+        .setLngLat([stop.lng, stop.lat])
+        .setPopup(new maplibregl.Popup({ offset: 10 }).setText(`${stop.name}, ${stop.municipality}`))
+        .addTo(map);
+    });
+
     map.on("load", () => {
-      addRouteLine(map, stops, color, path);
-      fitMapToStops(map, stops);
+      addRouteLine(map, stops, color, theme, path);
+      if (stops.length > 0) {
+        const bounds = new maplibregl.LngLatBounds();
+        for (const stop of stops) bounds.extend([stop.lng, stop.lat]);
+        map.fitBounds(bounds, { padding: 48, maxZoom: 14, duration: 0 });
+      }
     });
 
     return () => {
-      mapRef.current = null;
       markers.forEach((marker) => marker.remove());
       map.remove();
     };
-  }, [stops, color, path]);
-
-  const handleBasemapChange = (id: string) => {
-    setBasemapId(id);
-    const map = mapRef.current;
-    if (map?.isStyleLoaded()) applyBasemap(map, getBasemap(id));
-    else map?.once("idle", () => applyBasemap(map, getBasemap(id)));
-  };
+  }, [stops, color, path, basemapId, theme]);
 
   return (
     <div className={`relative ${className ?? "h-full w-full"}`}>
-      <div
-        ref={containerRef}
-        className="h-full w-full"
-        role="img"
-        aria-label="Map of route stops"
-      />
-      <BasemapSwitcher value={basemapId} onChange={handleBasemapChange} />
+      <div ref={containerRef} className="h-full w-full" role="img" aria-label="Map of route stops" />
+      <BasemapSwitcher value={basemapId} onChange={setBasemapId} />
     </div>
   );
 }

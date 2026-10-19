@@ -4,13 +4,13 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import BasemapSwitcher from "@/components/map/BasemapSwitcher";
+import { useMapTheme } from "@/hooks/useMapTheme";
 import {
-  applyBasemap,
+  casingColor,
   DEFAULT_BASEMAP_ID,
-  getBasemap,
-  MAP_DEFAULT_CENTER,
+    MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM,
-  rasterStyle,
+  basemapStyle,
 } from "@/lib/basemaps";
 import type { NetworkLayer } from "@/components/map/NetworkMap";
 
@@ -27,13 +27,14 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [basemapId, setBasemapId] = useState(DEFAULT_BASEMAP_ID);
+  const theme = useMapTheme();
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: rasterStyle(getBasemap(DEFAULT_BASEMAP_ID)),
+      style: basemapStyle(basemapId, theme),
       center: MAP_DEFAULT_CENTER,
       zoom: MAP_DEFAULT_ZOOM,
       attributionControl: { compact: true },
@@ -59,7 +60,7 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
           type: "line",
           source: layerId(layer.id),
           layout: { "line-cap": "round", "line-join": "round" },
-          paint: { "line-color": layer.color, "line-width": 3.5 },
+          paint: { "line-color": layer.color, "line-width": 3.5, "line-opacity": 0.9 },
         });
         for (const coord of layer.coordinates) bounds.extend(coord);
       }
@@ -81,8 +82,8 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
         source: "network-stops",
         paint: {
           "circle-radius": 3.5,
-          "circle-color": "#ffffff",
-          "circle-stroke-color": "#0f172a",
+          "circle-color": casingColor(theme),
+          "circle-stroke-color": theme === "dark" ? "#eceef1" : "#16181d",
           "circle-stroke-width": 1.5,
         },
       });
@@ -96,7 +97,7 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
       mapRef.current = null;
       map.remove();
     };
-  }, [layers, stops]);
+  }, [layers, stops, basemapId, theme]);
 
   // React to legend toggles without rebuilding the map.
   useEffect(() => {
@@ -114,14 +115,8 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
     };
     if (map.isStyleLoaded()) apply();
     else map.once("idle", apply);
-  }, [hidden, layers]);
+  }, [hidden, layers, basemapId, theme]);
 
-  const handleBasemapChange = (id: string) => {
-    setBasemapId(id);
-    const map = mapRef.current;
-    if (map?.isStyleLoaded()) applyBasemap(map, getBasemap(id));
-    else map?.once("idle", () => applyBasemap(map, getBasemap(id)));
-  };
 
   return (
     <div className="relative h-[60vh] min-h-80 w-full">
@@ -131,7 +126,7 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
         role="img"
         aria-label="Map of the MyBus network"
       />
-      <BasemapSwitcher value={basemapId} onChange={handleBasemapChange} />
+      <BasemapSwitcher value={basemapId} onChange={setBasemapId} />
     </div>
   );
 }
