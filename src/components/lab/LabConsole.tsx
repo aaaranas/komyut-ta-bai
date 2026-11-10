@@ -106,6 +106,44 @@ export default function LabConsole() {
       </p>
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
+      <section className="mt-8 rounded-2xl border-2 border-dashed p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold">Defense demo setup</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Load all 4 scenarios at once to show every feature to the committee.
+            </p>
+          </div>
+          <Button
+            disabled={busy}
+            onClick={() => void run(() => api.labPost("demo", {}))}
+          >
+            Load all demo data
+          </Button>
+        </div>
+        <ol className="mt-4 space-y-1.5 text-sm">
+          {[
+            ["Welcome screen", "Clear browser data or open in Incognito — fires on first visit"],
+            ["Plan", "Search Anjo World → SM Parkmall — sees flooding reroute from Scenario 1"],
+            ["Alerts", "All 4 categories visible: flooding, delay, full vehicle, road disruption"],
+            ["Report", "Submit a new report — watch it appear in Alerts and affect planning"],
+            ["Privacy", "Show consent controls and contributor pseudonym"],
+            ["About", "Thesis title, verification formula, all 8 system modules"],
+            ["Lab (here)", "Show confidence scores, propagation time, verification metrics"],
+          ].map(([step, note], i) => (
+            <li key={step} className="flex gap-3">
+              <span className="mt-0.5 size-5 shrink-0 rounded-full bg-muted text-center text-xs font-bold leading-5 tabular-nums">
+                {i + 1}
+              </span>
+              <span>
+                <span className="font-semibold">{step}</span>
+                <span className="ml-2 text-muted-foreground">{note}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <Section title="Objective 4 metrics">
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
           <Metric label="Verification precision" value={pct(verification.precision)} note={`${verification.labeled} labeled reports`} />
@@ -144,7 +182,7 @@ export default function LabConsole() {
       <Section
         title="Controlled replay scenarios"
         action={
-          <Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => api.labDelete("scenarios"))}>
+          <Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => api.labDelete("demo"))}>
             Clear replay data
           </Button>
         }

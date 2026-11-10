@@ -116,6 +116,19 @@ export async function loadScenario(scenarioId: string) {
   return { loaded: scenario.id, reports: reports.length, official: official.length };
 }
 
+/** Clears existing replays then loads all scenarios — one-click demo setup. */
+export async function loadDemoData() {
+  await clearReplays();
+  let totalReports = 0;
+  let totalOfficial = 0;
+  for (const scenario of SCENARIOS) {
+    const result = await loadScenario(scenario.id);
+    totalReports += result.reports;
+    totalOfficial += result.official;
+  }
+  return { loaded_scenarios: SCENARIOS.length, reports: totalReports, official: totalOfficial };
+}
+
 /** Removes all replay data, leaving real contributions untouched. */
 export async function clearReplays() {
   return store.write((db) => {
