@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Megaphone, Navigation, Route, ShieldCheck } from "lucide-react";
+import { BellRing, Info, Megaphone, Navigation, Route, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useConditions } from "@/components/providers/ConditionsProvider";
@@ -12,6 +12,10 @@ const LINKS = [
   { href: "/report", label: "Report", Icon: Megaphone, match: (p: string) => p.startsWith("/report") },
   { href: "/routes", label: "Routes", Icon: Route, match: (p: string) => p.startsWith("/routes") },
   { href: "/privacy", label: "Privacy", Icon: ShieldCheck, match: (p: string) => p.startsWith("/privacy") },
+];
+
+const DESKTOP_EXTRA = [
+  { href: "/about", label: "About", match: (p: string) => p.startsWith("/about") },
 ];
 
 function useAlertCount(): number {
@@ -41,6 +45,19 @@ export function DesktopNav() {
           </Link>
         );
       })}
+      {DESKTOP_EXTRA.map(({ href, label, match }) => (
+        <Link
+          key={href}
+          href={href}
+          aria-current={match(pathname) ? "page" : undefined}
+          className={cn(
+            "text-sm transition-colors",
+            match(pathname) ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {label}
+        </Link>
+      ))}
     </nav>
   );
 }

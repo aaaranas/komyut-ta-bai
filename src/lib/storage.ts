@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   recentSearches: "komyut-recent-searches",
   installDismissed: "komyut-install-dismissed",
   labKey: "komyut-lab-key",
+  onboarded: "komyut-onboarded",
 } as const;
 
 export function readJson<T>(key: string, fallback: T): T {

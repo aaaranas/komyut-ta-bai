@@ -7,6 +7,7 @@ import LiveStatusPill from "@/components/layout/LiveStatusPill";
 import OfflineIndicator from "@/components/layout/OfflineIndicator";
 import RideTrackerBar from "@/components/layout/RideTrackerBar";
 import ThemeToggle from "@/components/layout/ThemeToggle";
+import WelcomeSheet from "@/components/layout/WelcomeSheet";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { ConditionsProvider } from "@/components/providers/ConditionsProvider";
 import { RideTrackerProvider } from "@/components/providers/RideTrackerProvider";
@@ -68,6 +69,7 @@ export default function RootLayout({
               <RideTrackerBar />
               <MobileTabBar />
               <InstallPrompt />
+              <WelcomeSheet />
             </RideTrackerProvider>
           </ConditionsProvider>
         </ThemeProvider>

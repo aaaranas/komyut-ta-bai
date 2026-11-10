@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment } from "react";
-import { StopKind, UnverifiedTag } from "@/components/common/badges";
+import { StatusLabel, StopKind, UnverifiedTag } from "@/components/common/badges";
 import RoutePlate from "@/components/common/RoutePlate";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import { useRideTracker } from "@/components/providers/RideTrackerProvider";
@@ -85,7 +85,8 @@ function TripEvents({ ids }: { ids: string[] }) {
             aria-hidden="true"
           />
           <span>
-            <span className="font-medium">{eventHeadline(event.category, event.details)}.</span>{" "}
+            <span className="mr-2 font-medium">{eventHeadline(event.category, event.details)}.</span>
+            <StatusLabel status={event.status} className="mr-2 align-middle" />
             <span className="text-muted-foreground">{event.consequence}</span>
           </span>
         </li>
