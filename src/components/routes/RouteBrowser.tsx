@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { UnverifiedTag } from "@/components/common/badges";
 import RoutePlate from "@/components/common/RoutePlate";
-import { routes } from "@/core/transit/catalog";
+import { routes, scopeOf } from "@/core/transit/catalog";
 import { describeFare } from "@/core/transit/fare";
 import { headwaySummary } from "@/core/transit/service";
 import type { Mode, Route } from "@/core/transit/types";
@@ -36,6 +36,11 @@ function RouteRow({ route }: { route: Route }) {
         <p className="text-xs text-muted-foreground">
           {routeSubtitle(route)}
           {route.provenance.status === "unverified" && <UnverifiedTag className="ml-2" />}
+          {scopeOf(route) !== "metro" && (
+            <span className="ml-2 text-[11px] font-semibold">
+              {scopeOf(route) === "partial" ? "Metro Cebu part only" : "Outside study area"}
+            </span>
+          )}
         </p>
       </div>
       <div className="hidden shrink-0 text-right text-xs text-muted-foreground sm:block">
@@ -59,7 +64,7 @@ export default function RouteBrowser() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-16 pt-8">
       <h1 className="text-[2rem] font-extrabold leading-tight tracking-[-0.025em]">Routes</h1>
-      <p className="mt-1 text-sm text-muted-foreground">{routes.length} routes in the curated dataset.</p>
+      <p className="mt-1 text-sm text-muted-foreground">{routes.length} routes in the curated dataset, {routes.filter((r) => scopeOf(r) !== "out").length} of them used for Metro Cebu trip plans.</p>
 
       <div className="mt-6 flex items-center gap-2 rounded-lg border border-input px-3 focus-within:border-ring">
         <Search className="size-4 text-muted-foreground" />

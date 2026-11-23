@@ -1,3 +1,4 @@
+import { METRO_CEBU_BBOX } from "@/core/transit/scope";
 import type maplibregl from "maplibre-gl";
 
 export type MapTheme = "light" | "dark";
@@ -46,8 +47,16 @@ export const BASEMAPS: Basemap[] = [
 
 export const DEFAULT_BASEMAP_ID = "minimal";
 
-/** Cebu City center, the default view before fitting to content. */
-export const MAP_DEFAULT_CENTER: [number, number] = [123.8854, 10.3157];
+const { minLat, maxLat, minLng, maxLng } = METRO_CEBU_BBOX;
+
+/** Metro Cebu, [[west, south], [east, north]]: the view when there is nothing else to fit. */
+export const METRO_CEBU_BOUNDS: [[number, number], [number, number]] = [
+  [minLng, minLat],
+  [maxLng, maxLat],
+];
+
+/** Center of Metro Cebu, the default view before fitting to content. */
+export const MAP_DEFAULT_CENTER: [number, number] = [(minLng + maxLng) / 2, (minLat + maxLat) / 2];
 export const MAP_DEFAULT_ZOOM = 10;
 
 /** The map style for a basemap id in the given theme. */

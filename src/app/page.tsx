@@ -8,7 +8,7 @@ export default function Home() {
       <div>
         <h1 className="text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.03em]">Where to, bai?</h1>
         <p className="mt-3 max-w-[34ch] text-[15px] leading-relaxed text-muted-foreground">
-          Routes across Cebu&apos;s jeepneys, MyBus, V-hires, buses, and ferries, adjusted for what commuters are
+          Routes across Metro CebuRoutes across Cebu&apos;s jeepneys, MyBus, V-hires, buses, and ferriesapos;s jeepneys, MyBus, V-hires, and buses, adjusted for what commuters are
           reporting right now.
         </p>
         <div className="mt-7">

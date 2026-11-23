@@ -22,7 +22,7 @@ const overpass = Overpass({
 export const metadata: Metadata = {
   title: "Komyut ta Bai",
   description:
-    "Multimodal transit planner for Cebu with commuter-reported, verified live conditions.",
+    "Multimodal transit planner for Metro Cebu with commuter-reported, verified live conditions.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

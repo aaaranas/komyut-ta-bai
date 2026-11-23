@@ -4,6 +4,7 @@
  */
 import { CEBU_BOUNDS, isWithinCebu } from "../src/core/transit/geo";
 import { normalizeNetwork } from "../src/core/transit/normalize";
+import { inMetroCebu, routeScope } from "../src/core/transit/scope";
 import { parseClock } from "../src/core/transit/time";
 import type { Network } from "../src/core/transit/types";
 import { routeRecords, stopRecords, transferRecords } from "../src/data";
@@ -117,4 +118,31 @@ function main(): void {
   );
 }
 
+/** Metro Cebu scope report: informational, never fails validation (records are kept). */
+function reportScope(network: Network): void {
+  const outStops = network.stops.filter((stop) => !inMetroCebu(stop));
+  const inScope = new Set(network.stops.filter(inMetroCebu).map((stop) => stop.id));
+  const scoped = network.routes.map((route) => ({ route, scope: routeScope(route, (id) => inScope.has(id)) }));
+  const partial = scoped.filter((r) => r.scope === "partial");
+  const out = scoped.filter((r) => r.scope === "out");
+  const noMetroStop = network.routes.filter((route) => !route.stop_ids.some((id) => inScope.has(id)));
+
+  console.log(
+    `Metro Cebu scope: ${inScope.size} stops in scope, ${outStops.length} out; ` +
+      `${scoped.length - partial.length - out.length} routes fully in scope, ${partial.length} partial, ${out.length} out`
+  );
+  if (outStops.length > 0) {
+    console.log(`  Out-of-scope stops: ${outStops.map((s) => `${s.id} (${s.municipality})`).join(", ")}`);
+  }
+  for (const { route } of partial) {
+    const kept = route.stop_ids.filter((id) => inScope.has(id));
+    console.log(`  Partial: ${route.id} routes ${kept.length}/${route.stop_ids.length} stops (${kept[0]} … ${kept.at(-1)})`);
+  }
+  for (const { route } of out) console.log(`  Out of scope: ${route.id} (${route.mode})`);
+  if (noMetroStop.length > 0) {
+    console.log(`  Routes with no Metro Cebu stop: ${noMetroStop.map((r) => r.id).join(", ")}`);
+  }
+}
+
 main();
+reportScope(normalizeNetwork(stopRecords, routeRecords, transferRecords));

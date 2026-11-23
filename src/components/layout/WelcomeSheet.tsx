@@ -74,7 +74,7 @@ export default function WelcomeSheet() {
         </div>
 
         <p className="text-[15px] leading-relaxed">
-          Find routes across Cebu&apos;s jeepneys, MyBus, V-hires, buses, and ferries — adjusted live from what
+          Find routes across Metro CebuFind routes across Cebu&apos;s jeepneys, MyBus, V-hires, buses, and ferriesapos;s jeepneys, MyBus, V-hires, and buses — adjusted live from what
           commuters are reporting.
         </p>
 

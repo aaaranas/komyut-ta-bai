@@ -142,24 +142,19 @@ describe("time-dependent planner", () => {
 });
 
 describe("curated dataset", () => {
-  it("plans Argao to Santa Fe across bus, walk, and ferry", () => {
-    const outcome = planJourney({
-      origin: "argao-terminal",
-      destination: "santafe-town",
-      preference: "fastest",
-      depart: at(6 * 60),
-    });
+  it("crosses Metro Cebu on the provincial buses' Metro Cebu segments", () => {
+    const request = { origin: "carcar-rotunda", destination: "danao-terminal", preference: "fastest" as const, depart: at(6 * 60) };
+    const outcome = planJourney(request);
     assert.equal(outcome.status, "ok");
     if (outcome.status !== "ok") return;
-    const modes = outcome.itinerary.legs.map((leg) => (leg.kind === "ride" ? leg.route.mode : "walk"));
-    assert.ok(modes.includes("ferry"));
-    const retimed = retimeItinerary(outcome.itinerary, {
-      origin: "argao-terminal",
-      destination: "santafe-town",
-      preference: "fastest",
-      depart: at(6 * 60),
-    });
-    assert.equal(retimed.status, "ok");
+    const routesUsed = outcome.itinerary.legs.flatMap((leg) => (leg.kind === "ride" ? [leg.route.id] : []));
+    assert.ok(routesUsed.length >= 2);
+    assert.equal(retimeItinerary(outcome.itinerary, request).status, "ok");
+  });
+
+  it("does not route outside Metro Cebu", () => {
+    const outcome = planJourney({ origin: "argao-terminal", destination: "santafe-town", preference: "fastest", depart: at(6 * 60) });
+    assert.equal(outcome.status, "unknown_stop");
   });
 
   it("finds a cheapest plan no slower than the bound", () => {

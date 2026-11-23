@@ -1,3 +1,4 @@
+import { scopeOf } from "@/core/transit/catalog";
 import { describeFare } from "@/core/transit/fare";
 import { headwaySummary, serviceHours } from "@/core/transit/service";
 import { formatDuration } from "@/core/transit/time";
@@ -9,8 +10,24 @@ const EVIDENCE = {
   estimate: "an estimate",
 } as const;
 
+export const SCOPE_NOTE = {
+  metro: null,
+  partial: "Runs beyond Metro Cebu; only its Metro Cebu stops are used for trip plans.",
+  out: "Outside the Metro Cebu study area; listed for reference and not used for trip plans.",
+} as const;
+
+export function scopeNote(route: Route): string | null {
+  const scope = scopeOf(route);
+  if (scope === "out" && route.mode === "ferry") {
+    return "Departs Metro Cebu. Scheduled ferry with no live sensing; not used for trip plans.";
+  }
+  return SCOPE_NOTE[scope];
+}
+
 export default function RouteFacts({ route }: { route: Route }) {
+  const note = scopeNote(route);
   const facts = [
+    ...(note ? [["Coverage", note]] : []),
     ["Fare", describeFare(route.fare)],
     ["End to end", formatDuration(route.duration_mins)],
     ["How often", `${headwaySummary(route)}, ${EVIDENCE[route.service.evidence]}`],

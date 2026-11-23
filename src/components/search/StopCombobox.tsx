@@ -3,7 +3,7 @@
 import { Loader2, LocateFixed } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
 import { StopKind } from "@/components/common/badges";
-import { HUB_STOP_TYPES, stops } from "@/core/transit/catalog";
+import { HUB_STOP_TYPES, scopedStops as stops } from "@/core/transit/catalog";
 import { nearest } from "@/core/transit/geo";
 import type { Stop } from "@/core/transit/types";
 import { cn } from "@/lib/utils";

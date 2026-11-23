@@ -1,5 +1,6 @@
 import { routeGeometry, routeRecords, stopRecords, transferRecords } from "@/data";
 import { normalizeNetwork } from "@/core/transit/normalize";
+import { inMetroCebu, routeScope, type RouteScope } from "@/core/transit/scope";
 import type { Network, Route, Stop, StopType } from "@/core/transit/types";
 
 /**
@@ -63,7 +64,25 @@ export const HUB_STOP_TYPES: StopType[] = ["terminal", "port"];
 
 /** Notable interchange hubs (terminals and ports), terminals listed first. */
 export function majorHubs(): Stop[] {
-  return stops
+  return scopedStops
     .filter((stop) => HUB_STOP_TYPES.includes(stop.type))
     .sort((a, b) => HUB_STOP_TYPES.indexOf(a.type) - HUB_STOP_TYPES.indexOf(b.type));
 }
+
+const inScopeIds: ReadonlySet<string> = new Set(stops.filter(inMetroCebu).map((stop) => stop.id));
+const scopeOfRoute: ReadonlyMap<string, RouteScope> = new Map(
+  routes.map((route) => [route.id, routeScope(route, (id) => inScopeIds.has(id))])
+);
+
+/** Is this stop inside Metro Cebu (the study area the planner routes)? */
+export function stopInScope(stopId: string): boolean {
+  return inScopeIds.has(stopId);
+}
+
+/** Whether a route is fully, partly, or not routed in Metro Cebu. */
+export function scopeOf(route: Route): RouteScope {
+  return scopeOfRoute.get(route.id) ?? "out";
+}
+
+/** Stops the planner can route to and from. */
+export const scopedStops: Stop[] = stops.filter((stop) => inScopeIds.has(stop.id));

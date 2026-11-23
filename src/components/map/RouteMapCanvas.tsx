@@ -9,7 +9,8 @@ import { useMapTheme } from "@/hooks/useMapTheme";
 import {
   casingColor,
   DEFAULT_BASEMAP_ID,
-    MAP_DEFAULT_CENTER,
+  MAP_DEFAULT_CENTER,
+  METRO_CEBU_BOUNDS,
   MAP_DEFAULT_ZOOM,
   basemapStyle,
   type MapTheme,
@@ -82,6 +83,8 @@ export default function RouteMapCanvas({ stops, color, path, className }: RouteM
         const bounds = new maplibregl.LngLatBounds();
         for (const stop of stops) bounds.extend([stop.lng, stop.lat]);
         map.fitBounds(bounds, { padding: 48, maxZoom: 14, duration: 0 });
+      } else {
+        map.fitBounds(METRO_CEBU_BOUNDS, { padding: 20, duration: 0 });
       }
     });
 

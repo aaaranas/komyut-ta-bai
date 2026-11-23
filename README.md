@@ -1,8 +1,8 @@
 # Komyut ta Bai 🚌⛴️
 
-**Asa ta, Bai?** — A multimodal transit planner for Cebu with a participatory sensing layer.
+**Asa ta, Bai?** — A multimodal transit planner for Metro Cebu with a participatory sensing layer.
 
-Komyut ta Bai plans trips across MyBus, jeepneys (PUJ), V-hires, provincial buses, and ferries using a curated dataset and a graph-based planner. Commuters report **delays, flooding, full vehicles, and road disruptions**. Those reports go through a verification layer, and a confidence-weighted, time-decayed score turns them into changes to the route graph. Every plan shows the baseline estimate next to the live-adjusted one.
+Komyut ta Bai plans trips across Metro Cebu (7 cities and 6 municipalities) on MyBus, e-jeepneys, jeepneys (PUJ), V-hires, and the Metro Cebu stretches of provincial buses, using a curated dataset and a graph-based planner. Commuters report **delays, flooding, full vehicles, and road disruptions**. Those reports go through a verification layer, and a confidence-weighted, time-decayed score turns them into changes to the route graph. Every plan shows the baseline estimate next to the live-adjusted one.
 
 It is the software artifact for the CMSC 198.1 thesis *“Komyut ta Bai: A Participatory Sensing Framework for Real-Time Transit Data Enrichment in Cebu’s Informal Public Transportation Network”* (UP Cebu). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how each research objective maps to code.
 

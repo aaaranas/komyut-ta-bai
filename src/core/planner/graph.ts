@@ -46,7 +46,8 @@ function pushEdge(adjacency: Map<string, Edge[]>, edge: Edge): void {
 function addRideEdges(
   adjacency: Map<string, Edge[]>,
   route: Route,
-  order: Stop[]
+  order: Stop[],
+  keep: (stopId: string) => boolean
 ): void {
   const hopKm = order.slice(1).map((stop, i) => haversineKm(order[i], stop));
   const totalKm = hopKm.reduce((sum, km) => sum + km, 0);
@@ -56,7 +57,9 @@ function addRideEdges(
       totalKm > 0
         ? (route.duration_mins * km) / totalKm
         : route.duration_mins / hopKm.length;
-    pushEdge(adjacency, {
+    // Hops leaving the study area are dropped; kept hops still carry their
+    // offset from the real origin, so waits follow the true departure times.
+    if (keep(order[i].id) && keep(order[i + 1].id)) pushEdge(adjacency, {
       kind: "ride",
       from: order[i].id,
       to: order[i + 1].id,
@@ -75,23 +78,33 @@ function addRideEdges(
  * routes joining the same pair, and direction follows each route's
  * `direction` (one-way records are never reversed).
  */
-export function buildGraph(network: Network): TransitGraph {
-  const stops = new Map(network.stops.map((stop) => [stop.id, stop]));
-  const routes = new Map(network.routes.map((route) => [route.id, route]));
-  const adjacency = new Map<string, Edge[]>();
+export interface GraphScope {
+  stop: (stop: Stop) => boolean;
+  route: (route: Route) => boolean;
+}
 
-  for (const route of network.routes) {
+const EVERYTHING: GraphScope = { stop: () => true, route: () => true };
+
+export function buildGraph(network: Network, scope: GraphScope = EVERYTHING): TransitGraph {
+  const stops = new Map(network.stops.filter(scope.stop).map((stop) => [stop.id, stop]));
+  const allStops = new Map(network.stops.map((stop) => [stop.id, stop]));
+  const routes = new Map(network.routes.filter(scope.route).map((route) => [route.id, route]));
+  const adjacency = new Map<string, Edge[]>();
+  const keep = (stopId: string) => stops.has(stopId);
+
+  for (const route of routes.values()) {
     const order = route.stop_ids
-      .map((id) => stops.get(id))
+      .map((id) => allStops.get(id))
       .filter((stop): stop is Stop => stop !== undefined);
     if (order.length < 2) continue;
-    addRideEdges(adjacency, route, order);
+    addRideEdges(adjacency, route, order, keep);
     if (route.direction === "both_ways") {
-      addRideEdges(adjacency, route, [...order].reverse());
+      addRideEdges(adjacency, route, [...order].reverse(), keep);
     }
   }
 
   for (const transfer of network.transfers) {
+    if (!keep(transfer.from_stop_id) || !keep(transfer.to_stop_id)) continue;
     const base = {
       kind: "walk" as const,
       minutes: transfer.minutes,

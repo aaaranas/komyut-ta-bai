@@ -30,6 +30,11 @@ export default function AboutPage() {
           recommendations.
         </p>
         <p className="mt-3 max-w-prose text-sm leading-relaxed">
+          The study area is Metro Cebu: the cities of Carcar, Cebu, Danao, Lapu-Lapu, Mandaue, Naga, and Talisay, and
+          the municipalities of Compostela, Consolacion, Cordova, Liloan, Minglanilla, and San Fernando. Provincial buses
+          are routed only along their Metro Cebu stops; ferries leaving the area are listed but not planned.
+        </p>
+        <p className="mt-3 max-w-prose text-sm leading-relaxed">
           The sensing layer is Soft IoT: it treats every smartphone as a sensor node, requiring no hardware
           installation. Official hazard feeds from PAGASA, DOST-ASTI, and PHIVOLCS are ingested alongside commuter
           reports to corroborate or expedite verification.

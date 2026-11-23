@@ -1,4 +1,4 @@
-import { network } from "@/core/transit/catalog";
+import { network, scopeOf, stopInScope } from "@/core/transit/catalog";
 import { buildGraph, edgesFrom, type TransitGraph } from "@/core/planner/graph";
 import { planOnGraph, retimeOnGraph } from "@/core/planner/search";
 import type { Itinerary, PlanOutcome, PlanRequest, RetimeOutcome } from "@/core/planner/types";
@@ -10,9 +10,12 @@ export type * from "@/core/planner/types";
 
 let defaultGraph: TransitGraph | null = null;
 
-/** The graph over the curated dataset, built on first use. */
+/** The graph over the curated dataset within Metro Cebu, built on first use. */
 export function getGraph(): TransitGraph {
-  defaultGraph ??= buildGraph(network);
+  defaultGraph ??= buildGraph(network, {
+    stop: (stop) => stopInScope(stop.id),
+    route: (route) => scopeOf(route) !== "out",
+  });
   return defaultGraph;
 }
 

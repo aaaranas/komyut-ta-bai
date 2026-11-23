@@ -4,7 +4,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
 import { useMapTheme } from "@/hooks/useMapTheme";
-import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM, DEFAULT_BASEMAP_ID, basemapStyle } from "@/lib/basemaps";
+import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM, METRO_CEBU_BOUNDS, DEFAULT_BASEMAP_ID, basemapStyle } from "@/lib/basemaps";
 import { dotMarker } from "@/lib/map-markers";
 
 export interface ConditionMarker {
@@ -46,6 +46,8 @@ export default function ConditionsMapCanvas({ markers }: { markers: ConditionMar
       const bounds = new maplibregl.LngLatBounds();
       items.forEach((item) => bounds.extend([item.lng, item.lat]));
       map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
+    } else {
+      map.fitBounds(METRO_CEBU_BOUNDS, { padding: 20, duration: 0 });
     }
     return () => {
       placed.forEach((marker) => marker.remove());

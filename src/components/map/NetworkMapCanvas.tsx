@@ -8,7 +8,8 @@ import { useMapTheme } from "@/hooks/useMapTheme";
 import {
   casingColor,
   DEFAULT_BASEMAP_ID,
-    MAP_DEFAULT_CENTER,
+  MAP_DEFAULT_CENTER,
+  METRO_CEBU_BOUNDS,
   MAP_DEFAULT_ZOOM,
   basemapStyle,
 } from "@/lib/basemaps";
@@ -90,6 +91,8 @@ export default function NetworkMapCanvas({ layers, stops, hidden }: Props) {
 
       if (!bounds.isEmpty()) {
         map.fitBounds(bounds, { padding: 40, duration: 0 });
+      } else {
+        map.fitBounds(METRO_CEBU_BOUNDS, { padding: 20, duration: 0 });
       }
     });
 
