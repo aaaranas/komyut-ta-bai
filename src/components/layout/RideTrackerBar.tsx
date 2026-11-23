@@ -38,6 +38,11 @@ export default function RideTrackerBar() {
                 for {formatDuration((now.getTime() - (tracker.startedAt ?? now.getTime())) / 60_000)}. Location stays on
                 this phone.
               </span>
+              {(tracker.wakeLock === "refused" || tracker.wakeLock === "unsupported") && (
+                <span className="block text-xs font-medium text-warn">
+                  Keep the app open with the screen on while you ride; location stops when it&apos;s in the background.
+                </span>
+              )}
             </p>
             <Button size="sm" onClick={() => void tracker.stop(true)}>
               Done

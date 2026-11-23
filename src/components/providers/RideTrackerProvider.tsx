@@ -5,6 +5,7 @@ import { hopMinutes } from "@/core/planner";
 import { deriveSegments, type TracePoint } from "@/core/sensing/traces";
 import { getRoute, orderedStopsOf } from "@/core/transit/catalog";
 import { useConsent } from "@/hooks/useConsent";
+import { useScreenWakeLock, type WakeLockState } from "@/hooks/useScreenWakeLock";
 import { api } from "@/lib/api";
 
 export type TrackerResult =
@@ -19,6 +20,8 @@ interface TrackerValue {
   pointCount: number;
   result: TrackerResult | null;
   error: string | null;
+  /** Screen wake lock while tracing; "refused"/"unsupported" means the rider must keep the app open. */
+  wakeLock: WakeLockState;
   start: (routeId: string) => void;
   /** Stops tracing; when `send` is true, derived segments are submitted. */
   stop: (send: boolean) => Promise<void>;
@@ -133,6 +136,7 @@ export function RideTrackerProvider({ children }: { children: React.ReactNode })
   useEffect(() => clearWatch, [clearWatch]);
 
   const tracking = consent.rideTraces ? routeId : null;
+  const wakeLock = useScreenWakeLock(tracking !== null);
   const value = useMemo<TrackerValue>(
     () => ({
       routeId: tracking,
@@ -140,6 +144,7 @@ export function RideTrackerProvider({ children }: { children: React.ReactNode })
       pointCount,
       result,
       error,
+      wakeLock,
       start,
       stop,
       dismissResult: () => {
@@ -147,7 +152,7 @@ export function RideTrackerProvider({ children }: { children: React.ReactNode })
         setError(null);
       },
     }),
-    [tracking, startedAt, pointCount, result, error, start, stop]
+    [tracking, startedAt, pointCount, result, error, wakeLock, start, stop]
   );
 
   return <RideTrackerContext.Provider value={value}>{children}</RideTrackerContext.Provider>;
