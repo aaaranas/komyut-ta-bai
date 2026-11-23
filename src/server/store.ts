@@ -35,7 +35,7 @@ const DAY = 86_400_000;
 /** Retention: reports and labels 90 days; travel-time data 30 days. */
 export const RETENTION_DAYS = { reports: 90, segments: 30 } as const;
 
-const emptyDatabase = (): Database => ({
+export const emptyDatabase = (): Database => ({
   version: 1,
   reports: [],
   labels: [],
@@ -45,7 +45,7 @@ const emptyDatabase = (): Database => ({
   validations: [],
 });
 
-function prune(db: Database, now: Date): void {
+export function prune(db: Database, now: Date): void {
   const reportCutoff = now.getTime() - RETENTION_DAYS.reports * DAY;
   const segmentCutoff = now.getTime() - RETENTION_DAYS.segments * DAY;
   db.reports = db.reports.filter((r) => new Date(r.submitted_at).getTime() >= reportCutoff);
@@ -63,7 +63,14 @@ function prune(db: Database, now: Date): void {
  * falls back to the OS temp directory on read-only hosts, reporting
  * itself as "temporary" so the UI can say reports may reset.
  */
-class JsonStore {
+/** Both persistence backends implement this; callers never know which one runs. */
+export interface Store {
+  read<T>(reader: (db: Readonly<Database>) => T): Promise<T>;
+  write<T>(writer: (db: Database) => T): Promise<T>;
+  storageMode(): Promise<StorageMode>;
+}
+
+export class JsonStore implements Store {
   private db: Database | null = null;
   private location: { dir: string; mode: StorageMode } | null = null;
   private chain: Promise<unknown> = Promise.resolve();
@@ -132,8 +139,24 @@ class JsonStore {
   }
 }
 
-const holder = globalThis as typeof globalThis & { __komyutStore?: JsonStore };
-holder.__komyutStore ??= new JsonStore();
+/**
+ * PostgreSQL when DATABASE_URL is set (hosted deployments such as Vercel,
+ * whose disks are read-only or temporary); the JSON file store otherwise.
+ * The Postgres module is loaded only when used.
+ */
+function createStore(): Store {
+  const url = process.env.DATABASE_URL;
+  if (!url) return new JsonStore();
+  const backend = import("@/server/postgres-store").then(({ PostgresStore }) => new PostgresStore(url));
+  return {
+    read: async (reader) => (await backend).read(reader),
+    write: async (writer) => (await backend).write(writer),
+    storageMode: async () => "postgres",
+  };
+}
+
+const holder = globalThis as typeof globalThis & { __komyutStore?: Store };
+holder.__komyutStore ??= createStore();
 
 /** Process-wide store (kept on globalThis so dev hot reloads reuse it). */
-export const store: JsonStore = holder.__komyutStore;
+export const store: Store = holder.__komyutStore;

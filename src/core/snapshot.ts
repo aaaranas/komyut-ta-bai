@@ -3,7 +3,8 @@ import type { HazardNotice, HazardSourceStatus } from "@/core/hazards/types";
 import type { ConditionEffect } from "@/core/planner/conditions";
 import type { TransitEvent, TravelTimeAggregate } from "@/core/sensing/types";
 
-export type StorageMode = "file" | "temporary";
+/** Where reports live: a local JSON file, a temporary directory (may reset), or PostgreSQL. */
+export type StorageMode = "file" | "temporary" | "postgres";
 
 /** A published event plus the graph operation and consequence it implies. */
 export interface PublicEvent extends TransitEvent {

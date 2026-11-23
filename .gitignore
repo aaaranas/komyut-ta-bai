@@ -47,3 +47,6 @@ public/serwist-*.js
 public/serwist-*.js.map
 # local report store (src/server/store.ts)
 /.data/
+
+# generated Prisma client (npm install runs prisma generate)
+/src/generated/

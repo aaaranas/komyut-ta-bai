@@ -1,0 +1,125 @@
+// Komyut ta Bai persistence for hosted deployments (Neon or any PostgreSQL).
+// Local development uses the JSON file store unless DATABASE_URL is set.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Identity (kept apart from report content) ─────────────────────────────
+
+/// A signed-in account. Only a hash of the Google subject and email is stored.
+model User {
+  id           String     @id
+  subject_hash String     @unique
+  email_hash   String
+  created_at   DateTime   @default(now()) @db.Timestamptz(3)
+  pseudonym    Pseudonym?
+}
+
+/// The public face of a contributor: the salted pseudonym used on reports and a random nickname.
+model Pseudonym {
+  pseudonym  String   @id
+  nickname   String   @unique
+  user_id    String?  @unique
+  user       User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now()) @db.Timestamptz(3)
+}
+
+// ── Participatory sensing ─────────────────────────────────────────────────
+
+model Report {
+  id                 String    @id
+  category           String
+  kind               String
+  stop_id            String
+  route_id           String?
+  details            Json
+  contributor        String
+  observed_at        DateTime  @db.Timestamptz(3)
+  submitted_at       DateTime  @db.Timestamptz(3)
+  distance_to_stop_m Int?
+  withdrawn_at       DateTime? @db.Timestamptz(3)
+  replay             Json?
+
+  @@index([contributor])
+  @@index([submitted_at])
+}
+
+/// Independent ground-truth label for one report (reputation and Objective 4c).
+model Label {
+  report_id  String   @id
+  label      String
+  basis      String
+  labeled_at DateTime @db.Timestamptz(3)
+  note       String?
+  /// "dev" (parameter tuning) or "test" (used once for the reported results).
+  split      String   @default("dev")
+}
+
+model Official {
+  id          String    @id
+  source      String
+  kind        String
+  title       String
+  summary     String
+  area        Json
+  reading     Json?
+  observed_at DateTime  @db.Timestamptz(3)
+  valid_until DateTime? @db.Timestamptz(3)
+  connection  String
+  replay      Json?
+}
+
+/// Device-derived stop-to-stop ride time. Raw GPS never reaches the server.
+model Segment {
+  id           String   @id
+  route_id     String
+  from_stop_id String
+  to_stop_id   String
+  minutes      Float
+  observed_at  DateTime @db.Timestamptz(3)
+  contributor  String
+  trace_id     String
+  replay       Json?
+
+  @@index([route_id, from_stop_id, to_stop_id])
+}
+
+model Trace {
+  id                String   @id
+  contributor       String
+  route_id          String
+  submitted_at      DateTime @db.Timestamptz(3)
+  points_total      Int
+  points_used       Int
+  accepted_segments Int
+  rejected_segments Int
+}
+
+// ── Evaluation (Objective 4) ──────────────────────────────────────────────
+
+/// A field ride compared with the baseline and enriched estimates for the same departure.
+model Validation {
+  id             String   @id
+  origin_id      String
+  destination_id String
+  depart_at      String
+  condition      String
+  observed_mins  Float
+  baseline_mins  Float?
+  enriched_mins  Float?
+  recorded_at    DateTime @db.Timestamptz(3)
+  note           String?
+}
+
+/// Server timestamps for propagation time: source (report receipt or feed observation) → first route response.
+model PropagationMark {
+  event_id                String   @id
+  source_at               DateTime @db.Timestamptz(3)
+  first_route_response_at DateTime @db.Timestamptz(3)
+}

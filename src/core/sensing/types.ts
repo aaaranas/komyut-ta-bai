@@ -56,12 +56,17 @@ export interface Report {
   replay: ReplayTag | null;
 }
 
+/** Labels used to tune parameters ("dev") are kept apart from the held-out "test" set. */
+export type EvalSplit = "dev" | "test";
+
 export interface ReportLabel {
   report_id: string;
   label: TruthLabel;
   basis: LabelBasis;
   labeled_at: string;
   note?: string;
+  /** Missing on labels made before the split existed; read as "dev". */
+  split?: EvalSplit;
 }
 
 /** Report or official reading, normalized for scoring. */
