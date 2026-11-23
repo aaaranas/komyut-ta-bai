@@ -1,3 +1,4 @@
+import { forecastEffects, type WeatherSnapshot } from "@/core/hazards/rainfall";
 import { HAZARD_SOURCES, disconnectedStatus } from "@/core/hazards/sources";
 import { hazardNotices, officialEvidence } from "@/core/hazards/interpret";
 import { deriveEvents, isActiveEvent, reportEvidence } from "@/core/sensing/events";
@@ -40,7 +41,12 @@ export function publicEvent(event: TransitEvent, now: Date): PublicEvent {
   return { ...event, effect, consequence: describeEffect(effect, routeName) };
 }
 
-export function buildSnapshot(db: Readonly<Database>, now: Date, storage: StorageMode): ConditionsSnapshot {
+export function buildSnapshot(
+  db: Readonly<Database>,
+  now: Date,
+  storage: StorageMode,
+  weather: WeatherSnapshot | null = null
+): ConditionsSnapshot {
   const { events } = evaluateSensing(db, now);
   const published = events.filter(isActiveEvent).map((event) => publicEvent(event, now));
   const travelTimes = aggregateTravelTimes(db.segments, now);
@@ -53,11 +59,13 @@ export function buildSnapshot(db: Readonly<Database>, now: Date, storage: Storag
     effects: [
       ...published.flatMap((event) => (event.effect ? [event.effect] : [])),
       ...travelTimeEffects(travelTimes),
+      ...(weather?.status === "ok" ? forecastEffects(weather.alerts) : []),
     ],
     travel_times: travelTimes,
     hazards: {
       sources: HAZARD_SOURCES.map(disconnectedStatus),
       notices: hazardNotices(db.official, stops, now),
     },
+    weather,
   };
 }

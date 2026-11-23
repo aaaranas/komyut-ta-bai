@@ -22,7 +22,7 @@ function sourcesText(event: PublicEvent): string {
   const manual = event.weights.some((w) => w.official_connection === "manual");
   const parts = [];
   if (commuters > 0) parts.push(`${commuters} commuter${commuters === 1 ? "" : "s"}`);
-  if (event.official_sources > 0) parts.push(`${event.official_sources} official reading${manual ? " (entered by hand)" : ""}`);
+  if (event.official_sources > 0) parts.push(`${event.official_sources} ${manual ? "official (manual)" : "official"} reading${event.official_sources === 1 ? "" : "s"}`);
   return parts.join(" and ");
 }
 

@@ -8,7 +8,7 @@ import { useNow } from "@/hooks/useNow";
 const CONNECTION = {
   live: "Live feed",
   cached: "Cached copy",
-  manual: "Entered by hand, not a live feed",
+  manual: "Official (manual): entered by hand, not a live feed",
 } as const;
 
 const KIND = {

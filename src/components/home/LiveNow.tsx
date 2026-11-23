@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import EventRow from "@/components/alerts/EventRow";
+import { WeatherLine } from "@/components/alerts/WeatherPanel";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +25,7 @@ export default function LiveNow() {
           </Link>
         )}
       </div>
+      <WeatherLine weather={snapshot?.weather ?? null} />
 
       {status === "loading" ? (
         <p className="py-3 text-sm text-muted-foreground">Checking conditions…</p>

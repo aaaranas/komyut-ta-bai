@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import EventRow from "@/components/alerts/EventRow";
+import WeatherPanel from "@/components/alerts/WeatherPanel";
 import HazardPanel from "@/components/alerts/HazardPanel";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import { Button } from "@/components/ui/button";
@@ -148,6 +149,7 @@ export default function AlertsView() {
                 ))}
               </ul>
             )}
+            {snapshot && <WeatherPanel weather={snapshot.weather ?? null} />}
             {snapshot && <HazardPanel hazards={snapshot.hazards} />}
           </div>
         </div>

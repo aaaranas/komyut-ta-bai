@@ -1,6 +1,8 @@
 "use client";
 
 import EventRow from "@/components/alerts/EventRow";
+import { ForecastTag, OpenMeteoAttribution } from "@/components/common/badges";
+import { RAINFALL_LEVEL_LABEL, type RainfallAlert } from "@/core/hazards/rainfall";
 import type { ConditionsStatus } from "@/components/providers/ConditionsProvider";
 import { useConditions } from "@/components/providers/ConditionsProvider";
 import { Segmented } from "@/components/ui/segmented";
@@ -43,7 +45,10 @@ function Notice({ tone, children }: { tone: "neutral" | "warn" | "ok"; children:
  * data only). Both estimates stay available.
  */
 export default function LiveImpact({ status, baseline, live, usualToday, view, onViewChange }: Props) {
-  const { eventsById } = useConditions();
+  const { eventsById, snapshot } = useConditions();
+  const forecastOf = new Map((snapshot?.weather?.alerts ?? []).map((alert) => [alert.id, alert]));
+  const forecastsOn = (ids: string[]) =>
+    [...new Set(ids)].map((id) => forecastOf.get(id)).filter((a): a is RainfallAlert => !!a);
   const lookup = (ids: string[]) => ids.map((id) => eventsById.get(id)).filter((e): e is PublicEvent => !!e);
 
   if (status === "loading") return <Notice tone="neutral">Checking live conditions.</Notice>;
@@ -80,16 +85,22 @@ export default function LiveImpact({ status, baseline, live, usualToday, view, o
     ]),
   ]);
 
+  const forecasts = forecastsOn(enriched.event_ids);
+
   if (events.length === 0) {
     return (
-      <Notice tone="ok">
-        No verified problems reported on this trip{status === "stale" ? " (live data is not updating right now)" : ""}.
-      </Notice>
+      <div className="space-y-2">
+        <Notice tone="ok">
+          No verified problems reported on this trip{status === "stale" ? " (live data is not updating right now)" : ""}.
+        </Notice>
+        <ForecastNote alerts={forecasts} />
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      <ForecastNote alerts={forecasts} />
       <Notice tone="warn">
         {rerouted
           ? usualMins !== null
@@ -122,5 +133,18 @@ function EventList({ events }: { events: PublicEvent[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function ForecastNote({ alerts }: { alerts: RainfallAlert[] }) {
+  if (alerts.length === 0) return null;
+  return (
+    <div className="border-l-[3px] border-forecast py-0.5 pl-3 text-sm">
+      <p>
+        {alerts.map((a) => `${RAINFALL_LEVEL_LABEL[a.level]} near ${a.label}`).join("; ")}. Estimate includes a small
+        rain allowance. <ForecastTag className="ml-1 align-middle" />
+      </p>
+      <OpenMeteoAttribution />
+    </div>
   );
 }

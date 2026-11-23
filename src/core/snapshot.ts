@@ -1,3 +1,4 @@
+import type { WeatherSnapshot } from "@/core/hazards/rainfall";
 import type { HazardNotice, HazardSourceStatus } from "@/core/hazards/types";
 import type { ConditionEffect } from "@/core/planner/conditions";
 import type { TransitEvent, TravelTimeAggregate } from "@/core/sensing/types";
@@ -28,4 +29,6 @@ export interface ConditionsSnapshot {
     sources: HazardSourceStatus[];
     notices: HazardNotice[];
   };
+  /** Open-Meteo rainfall forecast; null when the snapshot is for another instant. */
+  weather: WeatherSnapshot | null;
 }

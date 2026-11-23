@@ -116,6 +116,8 @@ export function describeEffect(effect: ConditionEffect | null, routeName?: strin
       return `Adds about ${Math.round(effect.added_mins)} min${routeName ? ` to ${routeName}` : ""} from this stop.`;
     case "boarding_wait":
       return `Expect to wait about ${Math.round(effect.added_mins)} min more to board${routeName ? ` ${routeName}` : ""} here.`;
+    case "forecast":
+      return `Forecast rain: travel near here estimated ${Math.round((effect.factor - 1) * 100)}% slower.`;
     case "observed_time":
       return `Uses an observed travel time of ${Math.round(effect.minutes)} min (${effect.samples} rides).`;
   }

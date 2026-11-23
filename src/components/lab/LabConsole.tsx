@@ -455,7 +455,7 @@ function OfficialForm({ disabled, onSubmit }: { disabled: boolean; onSubmit: (bo
         }}
       >
         <p className="text-xs text-muted-foreground">
-          Always labeled “manually entered — not a live feed”. Only sensor readings at or above threshold count as
+          Always labeled “official (manual)”, never “live”. Only sensor readings at or above threshold count as
           flooding evidence.
         </p>
         <div className="grid grid-cols-2 gap-2">

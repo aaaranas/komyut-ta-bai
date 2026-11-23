@@ -36,6 +36,17 @@ export type ConditionEffect =
       added_mins: number;
     }
   | {
+      /**
+       * A weather forecast near the stop. Only ever multiplies cost by a small
+       * factor; a forecast is not an observation and can never close an edge.
+       */
+      kind: "forecast";
+      source_id: string;
+      stop_id: string;
+      targets: EffectTarget[];
+      factor: number;
+    }
+  | {
       kind: "observed_time";
       route_id: string;
       from_stop_id: string;
@@ -47,11 +58,13 @@ export type ConditionEffect =
 type Slowdown = Extract<ConditionEffect, { kind: "slowdown" }>;
 type Closure = Extract<ConditionEffect, { kind: "closure" }>;
 type BoardingWait = Extract<ConditionEffect, { kind: "boarding_wait" }>;
+type Forecast = Extract<ConditionEffect, { kind: "forecast" }>;
 
 export interface CompiledConditions {
   closures: ReadonlyMap<string, Closure[]>;
   slowdowns: ReadonlyMap<string, Slowdown[]>;
   boardingWaits: ReadonlyMap<string, BoardingWait[]>;
+  forecasts: ReadonlyMap<string, Forecast[]>;
   observed: ReadonlyMap<string, number>;
 }
 
@@ -59,6 +72,7 @@ export const NO_CONDITIONS: CompiledConditions = {
   closures: new Map(),
   slowdowns: new Map(),
   boardingWaits: new Map(),
+  forecasts: new Map(),
   observed: new Map(),
 };
 
@@ -74,17 +88,20 @@ export function compileConditions(effects: readonly ConditionEffect[]): Compiled
   const closures: Closure[] = [];
   const slowdowns: Slowdown[] = [];
   const boardingWaits: BoardingWait[] = [];
+  const forecasts: Forecast[] = [];
   const observed = new Map<string, number>();
   for (const effect of effects) {
     if (effect.kind === "closure") closures.push(effect);
     else if (effect.kind === "slowdown") slowdowns.push(effect);
     else if (effect.kind === "boarding_wait") boardingWaits.push(effect);
+    else if (effect.kind === "forecast") forecasts.push(effect);
     else observed.set(hopKey(effect.route_id, effect.from_stop_id, effect.to_stop_id), effect.minutes);
   }
   return {
     closures: group(closures),
     slowdowns: group(slowdowns),
     boardingWaits: group(boardingWaits),
+    forecasts: group(forecasts),
     observed,
   };
 }
@@ -126,6 +143,18 @@ export function edgeCost(edge: Edge, c: CompiledConditions): EdgeCost | null {
       minutes = minutes * slowdown.factor + slowdown.added_mins;
       eventIds.push(slowdown.event_id);
     }
+  }
+  // One forecast area counts once per edge, even when both ends lie inside it.
+  const forecastFactors = new Map<string, number>();
+  for (const stopId of new Set([edge.from, edge.to])) {
+    for (const forecast of c.forecasts.get(stopId) ?? []) {
+      if (!forecast.targets.includes(target)) continue;
+      forecastFactors.set(forecast.source_id, Math.max(1, forecast.factor));
+    }
+  }
+  for (const [sourceId, factor] of forecastFactors) {
+    minutes *= factor;
+    eventIds.push(sourceId);
   }
   return { minutes, event_ids: eventIds };
 }

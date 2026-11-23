@@ -40,6 +40,7 @@
   --live: #13804a;
   --warn: #9a5b00;
   --warn-soft: #fff5e1;
+  --forecast: #2b5f9e;
 }
 
 .dark {
@@ -70,6 +71,7 @@
   --live: #3fcf82;
   --warn: #f2b65c;
   --warn-soft: rgb(242 182 92 / 0.1);
+  --forecast: #86b6ec;
 }
 
 @theme inline {
@@ -95,6 +97,7 @@
   --color-live: var(--live);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-forecast: var(--forecast);
 
   --font-sans: var(--font-overpass), ui-sans-serif, system-ui, sans-serif;
 

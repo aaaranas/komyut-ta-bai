@@ -55,3 +55,29 @@ export function UnverifiedTag({ className }: { className?: string }) {
     </span>
   );
 }
+
+/** A weather forecast — not a verified report and not an official observation. */
+export function ForecastTag({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn("rounded border border-forecast/50 px-1 text-[11px] font-semibold text-forecast", className)}
+      title="A model forecast, not an observation. It can slow estimates slightly but never closes a road."
+    >
+      Forecast · Open-Meteo
+    </span>
+  );
+}
+
+/** Required CC BY 4.0 attribution wherever rainfall appears. */
+export function OpenMeteoAttribution({ className }: { className?: string }) {
+  return (
+    <a
+      href="https://open-meteo.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn("text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground", className)}
+    >
+      Weather data by Open-Meteo.com
+    </a>
+  );
+}
