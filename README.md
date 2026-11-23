@@ -67,9 +67,11 @@ Every variable is optional locally — with none set, the app runs in **dev mode
 
 ## Deploying (Vercel + Neon, free tiers)
 
+Live: **https://komyut-ta-bai-cebu.vercel.app** (the Vercel project is linked to this repository and deploys `main`; other branches get preview deployments). With no environment variables set it runs in dev mode on a temporary file store, so reports reset whenever the server restarts. To turn on the full setup:
+
 1. **Database.** Create a Neon project. Copy the pooled connection string (`DATABASE_URL`) and the direct one (`DIRECT_URL`). From your machine, run `DIRECT_URL=… npm run db:migrate:deploy` once to create the tables (and again whenever a new migration is added). To bring over local data: `DATABASE_URL=… npm run db:import-json`.
-2. **Google sign-in.** In Google Cloud Console → APIs & Services → Credentials, create an OAuth client ID (Web application) with the redirect URI `https://<your-domain>/api/auth/callback/google` (add `http://localhost:3000/api/auth/callback/google` for local testing). Configure the OAuth consent screen with your app name and support email.
-3. **Vercel.** Import the GitHub repository (framework: Next.js; the build command from `package.json` is used). Under Settings → Environment Variables, set `KOMYUT_PSEUDONYM_SALT`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `KOMYUT_RESEARCHER_EMAILS`, `DATABASE_URL`, and `DIRECT_URL`, then deploy.
+2. **Google sign-in.** In Google Cloud Console → APIs & Services → Credentials, create an OAuth client ID (Web application) with the redirect URIs `https://komyut-ta-bai-cebu.vercel.app/api/auth/callback/google` and, for local testing, `http://localhost:3000/api/auth/callback/google`. Configure the OAuth consent screen with your app name and support email. Preview deployments have their own URLs, so test sign-in on the production domain.
+3. **Vercel.** In the existing project → Settings → Environment Variables (Production, and Preview if you want previews to work the same), set `KOMYUT_PSEUDONYM_SALT`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `KOMYUT_RESEARCHER_EMAILS`, `DATABASE_URL`, and `DIRECT_URL`, then redeploy. The research console (`/lab`) shows "Storage: postgres" once the database is in use.
 4. **Check on an Android phone (Chrome).** Install the app from the browser menu, plan a trip, sign in, submit a flooding report, check the rainfall badge and the Open-Meteo attribution on Alerts, and, after the report is corroborated (a second account, or a lab replay), see the trip reroute.
 
 ## Project layout
