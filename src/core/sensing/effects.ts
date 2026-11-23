@@ -1,5 +1,5 @@
 import type { ConditionEffect, EffectTarget } from "@/core/planner/conditions";
-import { EFFECT_SIZE, TRAVEL_TIME_POLICY } from "@/core/sensing/policy";
+import { ADDITIVE_EFFECT, EFFECT_ALPHA, TRAVEL_TIME_POLICY } from "@/core/sensing/policy";
 import type { TransitEvent, TravelTimeAggregate } from "@/core/sensing/types";
 import { ROAD_MODES, type Route } from "@/core/transit/types";
 
@@ -12,22 +12,22 @@ export interface EffectContext {
 }
 
 /**
- * Translates an active event into one graph operation, proportionate to the
- * evidence: uncertain events get a reduced cost adjustment, only blocking
- * events disable edges, and a full vehicle never disables a route — it adds
- * a wait for that service at that stop only.
+ * Translates an active event into one graph operation, scaled by its
+ * confidence C: w = w₀ · (1 + αₖ · C) for area conditions, C × the reported
+ * minutes for delays, C × a headway of boarding wait for full vehicles. Only
+ * blocking events disable edges, and a full vehicle never disables a route —
+ * it adds a wait for that service at that stop only.
  */
 export function eventEffect(event: TransitEvent, context: EffectContext): ConditionEffect | null {
   if (event.status !== "uncertain" && event.status !== "corroborated") return null;
-  const tier = event.status === "corroborated" ? "corroborated" : "uncertain";
+  const c = Math.min(1, Math.max(0, event.confidence));
   const base = { event_id: event.id, stop_id: event.stop_id };
 
   switch (event.category) {
     case "delay": {
       const route = event.route_id ? context.getRoute(event.route_id) : undefined;
       if (!route) return null;
-      const reported = event.details.delay_mins ?? 10;
-      const share = tier === "corroborated" ? 1 : EFFECT_SIZE.delay_share_uncertain;
+      const reported = event.details.delay_mins ?? ADDITIVE_EFFECT.default_delay_mins;
       return {
         ...base,
         kind: "slowdown",
@@ -35,7 +35,7 @@ export function eventEffect(event: TransitEvent, context: EffectContext): Condit
         targets: [route.mode],
         scope: "departing",
         factor: 1,
-        added_mins: reported * share,
+        added_mins: reported * c,
       };
     }
     case "full_vehicle": {
@@ -45,39 +45,33 @@ export function eventEffect(event: TransitEvent, context: EffectContext): Condit
         ...base,
         kind: "boarding_wait",
         route_id: route.id,
-        added_mins: context.headwayOf(route) * EFFECT_SIZE.full_vehicle_headways[tier],
+        added_mins: context.headwayOf(route) * ADDITIVE_EFFECT.full_vehicle_headways * c,
       };
     }
     case "flooding": {
       if (event.blocking) return { ...base, kind: "closure", targets: ROAD_AND_FOOT };
-      const factors =
-        event.details.flood_level === "impassable"
-          ? EFFECT_SIZE.flood_impassable_factor
-          : EFFECT_SIZE.flood_passable_factor;
+      const alpha = EFFECT_ALPHA.flooding[event.details.flood_level ?? "passable"];
       return {
         ...base,
         kind: "slowdown",
         route_id: null,
         targets: ROAD_AND_FOOT,
         scope: "incident",
-        factor: factors[tier],
+        factor: 1 + alpha * c,
         added_mins: 0,
       };
     }
     case "road_disruption": {
       if (event.blocking) return { ...base, kind: "closure", targets: [...ROAD_MODES] };
-      const added =
-        event.details.road_status === "closed"
-          ? EFFECT_SIZE.road_closed_added_mins
-          : EFFECT_SIZE.road_slow_added_mins;
+      const alpha = EFFECT_ALPHA.road_disruption[event.details.road_status ?? "slow"];
       return {
         ...base,
         kind: "slowdown",
         route_id: null,
         targets: [...ROAD_MODES],
         scope: "departing",
-        factor: 1,
-        added_mins: added[tier],
+        factor: 1 + alpha * c,
+        added_mins: 0,
       };
     }
   }
@@ -111,7 +105,7 @@ export function describeEffect(effect: ConditionEffect | null, routeName?: strin
         : "Treated as closed to vehicles: trips are routed around this stop.";
     case "slowdown":
       if (effect.factor > 1) {
-        return `Travel near this stop estimated ${Math.round((effect.factor - 1) * 100)}% slower.`;
+        return `Travel ${effect.scope === "departing" ? "leaving" : "near"} this stop estimated ${Math.round((effect.factor - 1) * 100)}% slower.`;
       }
       return `Adds about ${Math.round(effect.added_mins)} min${routeName ? ` to ${routeName}` : ""} from this stop.`;
     case "boarding_wait":

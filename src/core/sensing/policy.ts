@@ -6,7 +6,7 @@ import type { ReportCategory, ReportKind } from "@/core/sensing/types";
  * proposed values under evaluation (Objective 4), not calibrated
  * probabilities; change them here and every consumer follows.
  */
-export const POLICY_VERSION = "2026-10-19.1";
+export const POLICY_VERSION = "2026-11-23.1";
 
 export interface CategoryPolicy {
   label: string;
@@ -90,8 +90,13 @@ export const OFFICIAL_CREDIBILITY: Record<OfficialConnection, number> = {
 };
 
 export const THRESHOLDS = {
-  /** Published as an uncertainty notice with a limited routing effect. */
+  /** θ_pub: an event is first published when its confidence reaches this. */
   publish: 0.45,
+  /**
+   * θ_exp: a published event expires only when confidence falls below this
+   * (θ_exp < θ_pub), so an event near the threshold doesn't flicker.
+   */
+  expire: 0.3,
   /** Published with its full routing effect. */
   corroborated: 0.6,
   /**
@@ -110,15 +115,28 @@ export const BLOCKING_HOLD_MAX_MINS = 24 * 60;
 /** Reputation evidence (labels) halves in weight every this many days. */
 export const REPUTATION_HALF_LIFE_DAYS = 90;
 
-/** Graph effect sizes. Uncertain events get the reduced value. */
-export const EFFECT_SIZE = {
-  delay_share_uncertain: 0.5,
-  flood_passable_factor: { corroborated: 1.3, uncertain: 1.15 },
-  flood_impassable_factor: { corroborated: 2, uncertain: 1.5 },
-  road_slow_added_mins: { corroborated: 10, uncertain: 5 },
-  road_closed_added_mins: { corroborated: 20, uncertain: 10 },
-  /** Full vehicle: wait roughly one more headway (half when uncertain). */
-  full_vehicle_headways: { corroborated: 1, uncertain: 0.5 },
+/**
+ * Edge weights under an active event: w(e) = w₀(e) · (1 + αₖ · C), with C the
+ * event's confidence, so the effect grows with the evidence and never falls
+ * below baseline (Dijkstra stays valid). w(e) = ∞ (a closure) only when the
+ * event marks e impassable and C ≥ θ_block with independent agreement.
+ */
+export const EFFECT_ALPHA = {
+  /** Road and foot edges at a flooded stop: passable water, or impassable but not yet blocking. */
+  flooding: { passable: 0.3, impassable: 1 },
+  /** Road edges leaving a disrupted stop: slow traffic, or a reported closure not yet blocking. */
+  road_disruption: { slow: 1.5, closed: 3 },
+} as const;
+
+/**
+ * Additive effects scale the same way: a delay adds C × the reported minutes
+ * to that service's hops; a full vehicle adds C × about one headway of wait
+ * to boarding that service at that stop, and never disables the route.
+ */
+export const ADDITIVE_EFFECT = {
+  /** Assumed delay when a report gives no minutes. */
+  default_delay_mins: 10,
+  full_vehicle_headways: 1,
 } as const;
 
 /** Aggregated GPS travel times are only published with this much support. */

@@ -227,22 +227,26 @@ function score(items: readonly Evidence[], at: number): Score {
   };
 }
 
-function tierOf(confidence: number): EventStatus {
+/**
+ * Status from confidence with hysteresis: an unpublished event needs θ_pub,
+ * while a published one stays up until it drops below θ_exp.
+ */
+function tierOf(confidence: number, published: boolean): EventStatus {
   if (confidence >= THRESHOLDS.corroborated) return "corroborated";
-  if (confidence >= THRESHOLDS.publish) return "uncertain";
-  return "pending";
+  if (confidence >= (published ? THRESHOLDS.expire : THRESHOLDS.publish)) return "uncertain";
+  return published ? "expired" : "pending";
 }
 
 function isCleared(s: Score): boolean {
   return s.counter >= THRESHOLDS.clearance && s.counter > s.support;
 }
 
-/** First minute (stepping forward) when the event would drop below publication. */
+/** First minute (stepping forward) when a published event would drop below θ_exp. */
 function fadeTime(items: readonly Evidence[], from: number): number {
   const maxAge = CATEGORY_POLICY[items[0].category].max_age_mins;
   for (let step = 5; step <= maxAge + 5; step += 5) {
     const at = from + step * MINUTE;
-    if (score(items, at).confidence < THRESHOLDS.publish) return at;
+    if (score(items, at).confidence < THRESHOLDS.expire) return at;
   }
   return from + maxAge * MINUTE;
 }
@@ -289,10 +293,7 @@ function evaluateCluster(items: Evidence[], now: Date): TransitEvent {
     status = "corroborated";
     confidence = peakBlockingConfidence;
   } else if (current.support === 0) status = "expired";
-  else {
-    status = tierOf(current.confidence);
-    if (status === "pending" && publishedAt !== null) status = "expired";
-  }
+  else status = tierOf(current.confidence, publishedAt !== null);
 
   const blocking = status === "corroborated" && (current.blocking || held);
   const active = status === "uncertain" || status === "corroborated";

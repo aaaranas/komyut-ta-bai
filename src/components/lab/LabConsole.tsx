@@ -8,7 +8,7 @@ import StopCombobox from "@/components/search/StopCombobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { HazardSourceId, OfficialKind } from "@/core/hazards/types";
-import { CATEGORY_POLICY, EFFECT_SIZE, POLICY_VERSION, THRESHOLDS } from "@/core/sensing/policy";
+import { CATEGORY_POLICY, EFFECT_ALPHA, POLICY_VERSION, THRESHOLDS } from "@/core/sensing/policy";
 import type { LabelBasis, TruthLabel } from "@/core/sensing/types";
 import { getRoute, getStop } from "@/core/transit/catalog";
 import type { Stop } from "@/core/transit/types";
@@ -346,10 +346,12 @@ export default function LabConsole() {
           </table>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Thresholds: publish ≥ {THRESHOLDS.publish}, corroborated ≥ {THRESHOLDS.corroborated}, blocking ≥{" "}
-          {THRESHOLDS.blocking} with ≥ {THRESHOLDS.blocking_min_independent_sources} independent sources (an
-          official reading counts as one). Uncertain delays apply {EFFECT_SIZE.delay_share_uncertain * 100}% of the
-          reported minutes.
+          Thresholds: publish (θ_pub) ≥ {THRESHOLDS.publish}, expire (θ_exp) below {THRESHOLDS.expire}, corroborated ≥{" "}
+          {THRESHOLDS.corroborated}, blocking (θ_block) ≥ {THRESHOLDS.blocking} with ≥{" "}
+          {THRESHOLDS.blocking_min_independent_sources} independent sources (an official reading counts as one). Edge
+          weights: w = w₀ · (1 + α·C) with α = {EFFECT_ALPHA.flooding.passable}/{EFFECT_ALPHA.flooding.impassable} for
+          passable/impassable flooding and {EFFECT_ALPHA.road_disruption.slow}/{EFFECT_ALPHA.road_disruption.closed} for
+          slow/closed roads; delays add C × the reported minutes.
         </p>
       </Section>
     </div>
