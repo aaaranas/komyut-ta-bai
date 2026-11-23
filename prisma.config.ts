@@ -1,8 +1,11 @@
 import { defineConfig } from "prisma/config";
 
-// DATABASE_URL is only needed for migrate/introspect; `prisma generate` runs without it.
+// Migrations use DIRECT_URL when set (Neon's unpooled connection), else DATABASE_URL.
+// `prisma generate` needs neither.
+const url = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: { path: "prisma/migrations" },
-  ...(process.env.DATABASE_URL ? { datasource: { url: process.env.DATABASE_URL } } : {}),
+  ...(url ? { datasource: { url } } : {}),
 });

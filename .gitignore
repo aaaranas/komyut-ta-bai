@@ -50,3 +50,6 @@ public/serwist-*.js.map
 
 # generated Prisma client (npm install runs prisma generate)
 /src/generated/
+
+# example env file is documentation, not a secret
+!.env.example
