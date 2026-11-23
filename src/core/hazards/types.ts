@@ -1,6 +1,6 @@
 import type { ReplayTag } from "@/core/sensing/types";
 
-export type HazardSourceId = "pagasa" | "dost_asti" | "phivolcs";
+export type HazardSourceId = "pagasa" | "dost_asti" | "phivolcs" | "philsensors";
 
 /**
  * How an official record reached the system. A cached or manually entered
@@ -50,7 +50,8 @@ export interface HazardSourceInfo {
   name: string;
   products: string[];
   kinds: OfficialKind[];
-  reference_url: string;
+  /** Official page for the source; omitted when none is confirmed. */
+  reference_url?: string;
 }
 
 export interface HazardSourceStatus extends HazardSourceInfo {

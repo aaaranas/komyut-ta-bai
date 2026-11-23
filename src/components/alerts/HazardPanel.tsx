@@ -17,7 +17,7 @@ const KIND = {
   hazard_context: "Hazard map",
 } as const;
 
-const SOURCE_NAME = { pagasa: "PAGASA", dost_asti: "DOST-ASTI", phivolcs: "PHIVOLCS" } as const;
+const SOURCE_NAME = { pagasa: "PAGASA", dost_asti: "DOST-ASTI", phivolcs: "PHIVOLCS", philsensors: "PhilSensors" } as const;
 
 /**
  * Official hazard information, with each source's connection stated
@@ -66,9 +66,11 @@ export default function HazardPanel({ hazards }: { hazards: ConditionsSnapshot["
             </dt>
             <dd className="text-muted-foreground">
               {source.products.join(", ")}.{" "}
-              <a href={source.reference_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-                Official site
-              </a>
+              {source.reference_url && (
+                <a href={source.reference_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                  Official site
+                </a>
+              )}
             </dd>
           </div>
         ))}

@@ -12,6 +12,7 @@ import { getRoute, stops } from "@/core/transit/catalog";
 import { routeCode } from "@/core/transit/naming";
 import { headwayAt } from "@/core/transit/service";
 import { cebuDepartureTime } from "@/core/transit/time";
+import { philSensorsStatus } from "@/server/hazards/philsensors";
 import { store, type Database } from "@/server/store";
 
 export interface SensingState {
@@ -64,7 +65,7 @@ export function buildSnapshot(
     ],
     travel_times: travelTimes,
     hazards: {
-      sources: HAZARD_SOURCES.map(disconnectedStatus),
+      sources: [...HAZARD_SOURCES.map(disconnectedStatus), ...[philSensorsStatus()].filter((s) => s !== null)],
       notices: hazardNotices(db.official, stops, now),
     },
     weather,

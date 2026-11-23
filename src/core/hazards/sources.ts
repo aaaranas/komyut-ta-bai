@@ -41,3 +41,15 @@ export function disconnectedStatus(source: HazardSourceInfo): HazardSourceStatus
       "Records from this source appear only when entered manually, and are labeled as such.",
   };
 }
+
+/**
+ * PhilSensors (DOST-ASTI sensor network). Listed only when enabled by
+ * KOMYUT_ENABLE_PHILSENSORS; it reports "not connected" until API access is
+ * granted. Nothing is scraped.
+ */
+export const PHILSENSORS_SOURCE: HazardSourceInfo = {
+  id: "philsensors",
+  name: "PhilSensors",
+  products: ["Water-level and rain sensors (API access pending)"],
+  kinds: ["sensor_reading"],
+};
