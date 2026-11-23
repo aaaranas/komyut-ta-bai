@@ -6,16 +6,17 @@ import { describeEffect, eventEffect, travelTimeEffects, type EffectContext } fr
 import { POLICY_VERSION } from "@/core/sensing/policy";
 import { buildReputations } from "@/core/sensing/reputation";
 import { aggregateTravelTimes } from "@/core/sensing/traces";
-import type { Reputation, TransitEvent } from "@/core/sensing/types";
+import type { Evidence, Reputation, TransitEvent } from "@/core/sensing/types";
 import type { ConditionsSnapshot, PublicEvent, StorageMode } from "@/core/snapshot";
 import { getRoute, stops } from "@/core/transit/catalog";
 import { routeCode } from "@/core/transit/naming";
 import { headwayAt } from "@/core/transit/service";
 import { cebuDepartureTime } from "@/core/transit/time";
-import type { Database } from "@/server/store";
+import { store, type Database } from "@/server/store";
 
 export interface SensingState {
   reputations: Map<string, Reputation>;
+  evidence: Evidence[];
   events: TransitEvent[];
 }
 
@@ -26,7 +27,7 @@ export function evaluateSensing(db: Readonly<Database>, now: Date): SensingState
     ...reportEvidence(db.reports, reputations),
     ...officialEvidence(db.official, stops, now),
   ];
-  return { reputations, events: deriveEvents(evidence, now) };
+  return { reputations, evidence, events: deriveEvents(evidence, now) };
 }
 
 function effectContext(now: Date): EffectContext {
@@ -68,4 +69,24 @@ export function buildSnapshot(
     },
     weather,
   };
+}
+
+/**
+ * Objective 4(b): stamps, from the server clock, the first route response
+ * (conditions snapshot) that carried each published event. Writes only when
+ * a snapshot carries an event not yet stamped.
+ */
+export async function markRouteResponses(snapshot: ConditionsSnapshot): Promise<void> {
+  if (snapshot.events.length === 0) return;
+  const at = snapshot.generated_at;
+  const marked = await store.read((db) => new Set(db.propagation.map((mark) => mark.event_id)));
+  const fresh = snapshot.events.filter((event) => !marked.has(event.id));
+  if (fresh.length === 0) return;
+  await store.write((db) => {
+    const known = new Set(db.propagation.map((mark) => mark.event_id));
+    for (const event of fresh) {
+      if (known.has(event.id)) continue;
+      db.propagation.push({ event_id: event.id, source_at: event.first_submitted_at, first_route_response_at: at });
+    }
+  });
 }

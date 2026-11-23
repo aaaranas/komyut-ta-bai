@@ -1,8 +1,17 @@
-import { estimateAccuracy, propagationStats, verificationMetrics, type FieldValidation } from "@/core/evaluation/metrics";
+import { toCsv } from "@/core/evaluation/csv";
+import {
+  compareRules,
+  estimateAccuracy,
+  propagationStats,
+  splitOf,
+  verificationMetrics,
+  type FieldValidation,
+} from "@/core/evaluation/metrics";
+import { confidenceAdmitted, countOnlyAdmitted } from "@/core/evaluation/rules";
 import { SCENARIOS, getScenario } from "@/core/evaluation/scenarios";
 import type { HazardSourceId, OfficialKind, OfficialObservation } from "@/core/hazards/types";
 import { compileConditions, planJourney } from "@/core/planner";
-import type { EventStatus, LabelBasis, Report, ReportLabel, TruthLabel } from "@/core/sensing/types";
+import type { EvalSplit, EventStatus, LabelBasis, Report, ReportLabel, TruthLabel } from "@/core/sensing/types";
 import { getStop } from "@/core/transit/catalog";
 import { cebuDepartureTime, cebuInstant } from "@/core/transit/time";
 import { HttpError, newId, pseudonymize } from "@/server/http";
@@ -10,6 +19,7 @@ import { buildSnapshot, evaluateSensing } from "@/server/sensing";
 import { store } from "@/server/store";
 
 const LABELS: readonly TruthLabel[] = ["true", "false", "unknown"];
+const SPLITS: readonly EvalSplit[] = ["dev", "test"];
 const BASES: readonly LabelBasis[] = ["field_observation", "official_record", "controlled_scenario"];
 const SOURCES: readonly HazardSourceId[] = ["pagasa", "dost_asti", "phivolcs"];
 const OFFICIAL_KINDS: readonly OfficialKind[] = ["advisory", "sensor_reading", "hazard_context"];
@@ -22,7 +32,9 @@ export async function labOverview() {
   const now = new Date();
   const storage = await store.storageMode();
   return store.read((db) => {
-    const { reputations, events } = evaluateSensing(db, now);
+    const { reputations, evidence, events } = evaluateSensing(db, now);
+    const byConfidence = confidenceAdmitted(events);
+    const byCount = countOnlyAdmitted(evidence, now);
     const eventOf = new Map(events.flatMap((event) => event.evidence_ids.map((id) => [id, event] as const)));
     return {
       storage,
@@ -44,7 +56,10 @@ export async function labOverview() {
       validations: db.validations,
       metrics: {
         verification: verificationMetrics(db.reports, db.labels, events),
-        propagation: propagationStats(events),
+        rules: (["dev", "test", "all"] as const).map((split) =>
+          compareRules(db.reports, db.labels, byConfidence, byCount, split)
+        ),
+        propagation: propagationStats(events, db.propagation),
         accuracy: estimateAccuracy(db.validations),
       },
       counts: {
@@ -89,6 +104,7 @@ export async function loadScenario(scenarioId: string) {
         label: step.truth,
         basis: "controlled_scenario",
         labeled_at: now.toISOString(),
+        split: "dev",
         note: `Scripted in scenario “${scenario.title}”.`,
       });
     } else {
@@ -140,20 +156,44 @@ export async function clearReplays() {
   });
 }
 
+/**
+ * Labels a report for reputation and evaluation. Each label belongs to the
+ * development set (for tuning parameters) or the test set (used once). A
+ * report can't move between sets, and reports of one event share a set, so
+ * nothing tuned on dev evidence leaks into the test results.
+ */
 export async function setLabel(body: Record<string, unknown>) {
   if (typeof body.report_id !== "string") throw new HttpError(400, "report_id is required.");
   if (!oneOf(body.label, LABELS)) throw new HttpError(400, "label must be true, false, or unknown.");
   if (!oneOf(body.basis, BASES)) throw new HttpError(400, "basis is required.");
-  const label: ReportLabel = {
-    report_id: body.report_id,
-    label: body.label,
-    basis: body.basis,
-    labeled_at: new Date().toISOString(),
-    note: typeof body.note === "string" ? body.note.slice(0, 500) : undefined,
-  };
+  if (body.split !== undefined && !oneOf(body.split, SPLITS)) throw new HttpError(400, "split must be dev or test.");
+  const reportId = body.report_id;
+  const labelValue = body.label;
+  const basis = body.basis;
+  const requested = body.split as EvalSplit | undefined;
+  const now = new Date();
   return store.write((db) => {
-    if (!db.reports.some((r) => r.id === label.report_id)) throw new HttpError(404, "Report not found.");
-    db.labels = [...db.labels.filter((l) => l.report_id !== label.report_id), label];
+    if (!db.reports.some((r) => r.id === reportId)) throw new HttpError(404, "Report not found.");
+    const existing = db.labels.find((l) => l.report_id === reportId);
+    const split = requested ?? (existing ? splitOf(existing) : "dev");
+    if (existing && splitOf(existing) !== split) {
+      throw new HttpError(409, `This report is already in the ${splitOf(existing)} set and can't move to ${split}.`);
+    }
+    const event = evaluateSensing(db, now).events.find((e) => e.evidence_ids.includes(reportId));
+    const siblings = new Set(event?.evidence_ids ?? []);
+    const conflict = db.labels.find((l) => l.report_id !== reportId && siblings.has(l.report_id) && splitOf(l) !== split);
+    if (conflict) {
+      throw new HttpError(409, `Another report of this event is in the ${splitOf(conflict)} set; label this one there too.`);
+    }
+    const label: ReportLabel = {
+      report_id: reportId,
+      label: labelValue,
+      basis,
+      labeled_at: now.toISOString(),
+      note: typeof body.note === "string" ? body.note.slice(0, 500) : undefined,
+      split,
+    };
+    db.labels = [...db.labels.filter((l) => l.report_id !== reportId), label];
     return label;
   });
 }
@@ -233,4 +273,62 @@ export async function addValidation(body: Record<string, unknown>) {
     db.validations.push(validation);
   });
   return validation;
+}
+
+export type ExportKind = "rides" | "decisions" | "propagation";
+export const EXPORT_KINDS: readonly ExportKind[] = ["rides", "decisions", "propagation"];
+
+/** CSV exports for analysis outside the app (Objective 4). */
+export async function exportCsv(kind: ExportKind): Promise<string> {
+  const now = new Date();
+  return store.read((db) => {
+    if (kind === "rides") {
+      return toCsv(
+        db.validations.map((v) => ({
+          ...v,
+          baseline_abs_error: v.baseline_mins === null ? null : Math.abs(v.baseline_mins - v.observed_mins),
+          enriched_abs_error: v.enriched_mins === null ? null : Math.abs(v.enriched_mins - v.observed_mins),
+        })),
+        ["id", "origin_id", "destination_id", "depart_at", "condition", "observed_mins", "baseline_mins", "enriched_mins", "baseline_abs_error", "enriched_abs_error", "recorded_at", "note"]
+      );
+    }
+    const { evidence, events } = evaluateSensing(db, now);
+    if (kind === "propagation") {
+      return toCsv(
+        propagationStats(events, db.propagation).samples.map((sample) => {
+          const event = events.find((e) => e.id === sample.event_id)!;
+          return { ...sample, category: event.category, stop_id: event.stop_id, route_id: event.route_id };
+        }),
+        ["event_id", "category", "stop_id", "route_id", "source_at", "published_at", "first_route_response_at", "decision_mins", "minutes", "replay"]
+      );
+    }
+    const byConfidence = confidenceAdmitted(events);
+    const byCount = countOnlyAdmitted(evidence, now);
+    const eventOf = new Map(events.flatMap((event) => event.evidence_ids.map((id) => [id, event] as const)));
+    const labelOf = new Map(db.labels.map((label) => [label.report_id, label]));
+    return toCsv(
+      db.reports
+        .filter((report) => report.kind !== "clearance")
+        .map((report) => {
+          const label = labelOf.get(report.id);
+          return {
+            report_id: report.id,
+            category: report.category,
+            kind: report.kind,
+            stop_id: report.stop_id,
+            route_id: report.route_id,
+            submitted_at: report.submitted_at,
+            withdrawn: report.withdrawn_at !== null,
+            event_id: eventOf.get(report.id)?.id ?? null,
+            split: label ? splitOf(label) : null,
+            label: label?.label ?? null,
+            basis: label?.basis ?? null,
+            confidence_rule_admitted: byConfidence.has(report.id),
+            count_only_admitted: byCount.has(report.id),
+            replay: report.replay !== null,
+          };
+        }),
+        ["report_id", "category", "kind", "stop_id", "route_id", "submitted_at", "withdrawn", "event_id", "split", "label", "basis", "confidence_rule_admitted", "count_only_admitted", "replay"]
+      );
+  });
 }

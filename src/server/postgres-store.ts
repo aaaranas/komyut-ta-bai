@@ -117,6 +117,17 @@ const TABLES: { [K in TableName]: Table<K> } = {
     toRow: (v) => ({ ...v, note: v.note ?? null, recorded_at: date(v.recorded_at) }),
     fromRow: (row) => ({ ...as<Item<"validations">>(row), note: optional<string>(row.note), recorded_at: iso(row.recorded_at) }),
   },
+  propagation: {
+    name: "propagation",
+    delegate: (tx) => d(tx, "propagationMark"),
+    key: "event_id",
+    toRow: (m) => ({ ...m, source_at: date(m.source_at), first_route_response_at: date(m.first_route_response_at) }),
+    fromRow: (row) => ({
+      ...as<Item<"propagation">>(row),
+      source_at: iso(row.source_at),
+      first_route_response_at: iso(row.first_route_response_at),
+    }),
+  },
 };
 
 const TABLE_LIST = Object.values(TABLES) as Table<TableName>[];

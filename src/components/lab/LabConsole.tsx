@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { HazardSourceId, OfficialKind } from "@/core/hazards/types";
 import { CATEGORY_POLICY, EFFECT_ALPHA, POLICY_VERSION, THRESHOLDS } from "@/core/sensing/policy";
-import type { LabelBasis, TruthLabel } from "@/core/sensing/types";
+import type { EvalSplit, LabelBasis, TruthLabel } from "@/core/sensing/types";
 import { getRoute, getStop } from "@/core/transit/catalog";
 import type { Stop } from "@/core/transit/types";
 import { toLocalDateTimeValue } from "@/core/transit/time";
@@ -22,6 +22,9 @@ import type { labOverview } from "@/server/lab";
 type Overview = Awaited<ReturnType<typeof labOverview>>;
 
 const pct = (value: number | null) => (value === null ? "—" : `${Math.round(value * 100)}%`);
+const pValue = (p: number | null) => (p === null ? "—" : p < 0.001 ? "< 0.001" : p.toFixed(3));
+const withCi = (rate: { value: number | null; ci: { lower: number; upper: number } | null }) =>
+  rate.value === null ? "—" : `${pct(rate.value)} [${pct(rate.ci!.lower)}–${pct(rate.ci!.upper)}]`;
 const mins = (value: number | null) => (value === null ? "—" : `${value.toFixed(1)} min`);
 const time = (iso: string | null) =>
   iso ? new Date(iso).toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" }) : "—";
@@ -49,6 +52,91 @@ function Metric({ label, value, note }: { label: string; value: string; note?: s
 }
 
 const select = "h-9 rounded-md border bg-background px-2 text-sm";
+
+type RuleRow = Overview["metrics"]["rules"][number];
+
+/** Objective 4(c): the confidence rule against the count-only rule, per evaluation set. */
+function RuleComparisonTable({ rules }: { rules: RuleRow[] }) {
+  const [split, setSplit] = useState<RuleRow["split"]>("dev");
+  const row = rules.find((r) => r.split === split)!;
+  const lines: [string, (m: RuleRow["confidence"]) => string][] = [
+    ["Precision", (m) => withCi(m.precision_rate)],
+    ["Recall", (m) => withCi(m.recall_rate)],
+    ["False admission rate", (m) => withCi(m.false_admission)],
+    ["False rejection rate", (m) => withCi(m.false_rejection)],
+    ["Labeled reports", (m) => String(m.labeled)],
+  ];
+  return (
+    <div className="mt-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold">Confidence rule vs count-only rule (publish once two accounts agree)</p>
+        <select aria-label="Evaluation set" className={select} value={split} onChange={(e) => setSplit(e.target.value as RuleRow["split"])}>
+          <option value="dev">Development set (tuning)</option>
+          <option value="test">Test set (use once)</option>
+          <option value="all">All labels</option>
+        </select>
+      </div>
+      {split === "test" && (
+        <p className="mt-1 text-xs text-warn">Held-out test set: look at it once, after parameters are frozen.</p>
+      )}
+      <div className="mt-2 overflow-x-auto rounded-xl border">
+        <table className="w-full min-w-[480px] text-left text-sm">
+          <thead className="text-xs text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">95% Wilson interval</th>
+              <th className="px-3 py-2">Confidence rule</th>
+              <th className="px-3 py-2">Count-only rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map(([label, format]) => (
+              <tr key={label} className="border-t">
+                <td className="px-3 py-2">{label}</td>
+                <td className="px-3 py-2 tabular-nums">{format(row.confidence)}</td>
+                <td className="px-3 py-2 tabular-nums">{format(row.count_only)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        McNemar on the {row.disagreements} report{row.disagreements === 1 ? "" : "s"} where the rules disagree (confidence
+        right / count-only right: {row.mcnemar.b} / {row.mcnemar.c}): p = {pValue(row.mcnemar.p)}
+        {row.mcnemar.method !== "none" ? ` (${row.mcnemar.method === "exact" ? "exact binomial" : "χ², continuity-corrected"})` : ""}.
+      </p>
+    </div>
+  );
+}
+
+/** CSV downloads, fetched with the same credentials as the console. */
+function ExportLinks() {
+  const [error, setError] = useState<string | null>(null);
+  const download = async (kind: "rides" | "decisions" | "propagation") => {
+    try {
+      const blob = await api.labExport(kind);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `komyut-${kind}-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Export failed.");
+    }
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <span className="text-muted-foreground">Export CSV:</span>
+      {(["rides", "decisions", "propagation"] as const).map((kind) => (
+        <Button key={kind} variant="outline" size="sm" onClick={() => void download(kind)}>
+          {kind === "rides" ? "Field rides" : kind === "decisions" ? "Decisions (both rules)" : "Propagation"}
+        </Button>
+      ))}
+      {error && <span className="text-destructive">{error}</span>}
+    </div>
+  );
+}
 
 export default function LabConsole() {
   const { refresh: refreshConditions } = useConditions();
@@ -162,15 +250,22 @@ export default function LabConsole() {
         </ol>
       </section>
 
-      <Section title="Objective 4 metrics">
+      <Section title="Objective 4 metrics" action={<ExportLinks />}>
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-          <Metric label="Verification precision" value={pct(verification.precision)} note={`${verification.labeled} labeled reports`} />
+          <Metric label="Verification precision" value={pct(verification.precision)} note={`${verification.labeled} labeled reports (all sets)`} />
           <Metric label="Verification recall" value={pct(verification.recall)} note={`${verification.false_positive} false admissions, ${verification.false_negative} false rejections`} />
-          <Metric label="Propagation (median)" value={mins(propagation.median_mins)} note={`p90 ${mins(propagation.p90_mins)} over ${propagation.events} events`} />
+          <Metric
+            label="Propagation (median)"
+            value={mins(propagation.median_mins)}
+            note={`p90 ${mins(propagation.p90_mins)} over ${propagation.events} live events, source → first route response`}
+          />
           <Metric label="Field rides" value={String(accuracy.find((a) => a.condition === "all")?.rides ?? 0)} note="Errors by condition below" />
         </div>
+
+        <RuleComparisonTable rules={data.metrics.rules} />
+
         <div className="mt-3 overflow-x-auto rounded-xl border">
-          <table className="w-full min-w-[480px] text-left text-sm">
+          <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2">Condition</th>
@@ -179,6 +274,7 @@ export default function LabConsole() {
                 <th className="px-3 py-2">Enriched MAE</th>
                 <th className="px-3 py-2">Baseline MAPE</th>
                 <th className="px-3 py-2">Enriched MAPE</th>
+                <th className="px-3 py-2">Wilcoxon p</th>
               </tr>
             </thead>
             <tbody>
@@ -190,11 +286,17 @@ export default function LabConsole() {
                   <td className="px-3 py-2 tabular-nums">{mins(row.enriched_mae)}</td>
                   <td className="px-3 py-2 tabular-nums">{pct(row.baseline_mape)}</td>
                   <td className="px-3 py-2 tabular-nums">{pct(row.enriched_mape)}</td>
+                  <td className="px-3 py-2 tabular-nums" title={`${row.wilcoxon.method}, n = ${row.wilcoxon.n}`}>
+                    {pValue(row.wilcoxon.p)}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Wilcoxon signed-rank on paired absolute errors (baseline vs enriched) for the same departures.
+        </p>
       </Section>
 
       <Section
@@ -304,8 +406,11 @@ export default function LabConsole() {
                     <LabelControl
                       current={report.label?.label ?? null}
                       basis={report.label?.basis ?? "field_observation"}
+                      split={report.label ? (report.label.split ?? "dev") : null}
                       disabled={busy}
-                      onSave={(label, basis) => void run(() => api.labPost("labels", { report_id: report.id, label, basis }))}
+                      onSave={(label, basis, split) =>
+                        void run(() => api.labPost("labels", { report_id: report.id, label, basis, split }))
+                      }
                     />
                   </td>
                 </tr>
@@ -361,15 +466,19 @@ export default function LabConsole() {
 function LabelControl({
   current,
   basis,
+  split,
   disabled,
   onSave,
 }: {
   current: TruthLabel | null;
   basis: LabelBasis;
+  /** Fixed once a report is labeled: a report can't move between sets. */
+  split: EvalSplit | null;
   disabled: boolean;
-  onSave: (label: TruthLabel, basis: LabelBasis) => void;
+  onSave: (label: TruthLabel, basis: LabelBasis, split: EvalSplit) => void;
 }) {
   const [chosenBasis, setChosenBasis] = useState<LabelBasis>(basis);
+  const [chosenSplit, setChosenSplit] = useState<EvalSplit>(split ?? "dev");
   return (
     <div className="flex flex-wrap items-center gap-1">
       {(["true", "false", "unknown"] as const).map((label) => (
@@ -377,7 +486,7 @@ function LabelControl({
           key={label}
           type="button"
           disabled={disabled}
-          onClick={() => onSave(label, chosenBasis)}
+          onClick={() => onSave(label, chosenBasis, chosenSplit)}
           className={`min-h-8 rounded-md border px-2 text-xs font-medium ${
             current === label ? "border-primary bg-primary text-primary-foreground" : "hover:bg-accent"
           }`}
@@ -394,6 +503,17 @@ function LabelControl({
         <option value="field_observation">field observation</option>
         <option value="official_record">official record</option>
         <option value="controlled_scenario">controlled scenario</option>
+      </select>
+      <select
+        aria-label="Evaluation set"
+        className={`${select} h-8 text-xs`}
+        value={chosenSplit}
+        disabled={split !== null}
+        title={split !== null ? "Labeled reports stay in their set." : "Development labels tune parameters; test labels are held out."}
+        onChange={(event) => setChosenSplit(event.target.value as EvalSplit)}
+      >
+        <option value="dev">dev set</option>
+        <option value="test">test set</option>
       </select>
     </div>
   );

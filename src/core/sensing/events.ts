@@ -73,7 +73,7 @@ function matchKey(evidence: Evidence): string {
   return `${evidence.category}|${evidence.stop_id}|${policy.requires_route ? evidence.route_id : "*"}`;
 }
 
-function cluster(evidence: readonly Evidence[]): Evidence[][] {
+export function cluster(evidence: readonly Evidence[]): Evidence[][] {
   const sorted = [...evidence].sort((a, b) => time(a.observed_at) - time(b.observed_at));
   const open = new Map<string, { items: Evidence[]; lastSupport: number }>();
   const clusters: Evidence[][] = [];

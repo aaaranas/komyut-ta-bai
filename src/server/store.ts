@@ -2,7 +2,7 @@ import { constants } from "node:fs";
 import { access, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { FieldValidation } from "@/core/evaluation/metrics";
+import type { FieldValidation, PropagationMark } from "@/core/evaluation/metrics";
 import type { OfficialObservation } from "@/core/hazards/types";
 import type { Report, ReportLabel, SegmentObservation } from "@/core/sensing/types";
 import type { StorageMode } from "@/core/snapshot";
@@ -45,6 +45,7 @@ export interface Database {
   validations: FieldValidation[];
   users: UserRecord[];
   pseudonyms: PseudonymRecord[];
+  propagation: PropagationMark[];
 }
 
 const FILE_NAME = "komyut-db.json";
@@ -63,6 +64,7 @@ export const emptyDatabase = (): Database => ({
   validations: [],
   users: [],
   pseudonyms: [],
+  propagation: [],
 });
 
 export function prune(db: Database, now: Date): void {
@@ -74,6 +76,7 @@ export function prune(db: Database, now: Date): void {
   db.official = db.official.filter((o) => new Date(o.observed_at).getTime() >= reportCutoff);
   db.segments = db.segments.filter((s) => new Date(s.observed_at).getTime() >= segmentCutoff);
   db.traces = db.traces.filter((t) => new Date(t.submitted_at).getTime() >= segmentCutoff);
+  db.propagation = db.propagation.filter((m) => new Date(m.source_at).getTime() >= reportCutoff);
 }
 
 /**

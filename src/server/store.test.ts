@@ -122,7 +122,7 @@ if (testUrl) {
       const { PostgresStore } = await import("@/server/postgres-store");
       const created = new PostgresStore(testUrl);
       await created.write((db) => {
-        for (const key of ["reports", "labels", "official", "segments", "traces", "validations", "users", "pseudonyms"] as const) db[key] = [];
+        for (const key of ["reports", "labels", "official", "segments", "traces", "validations", "users", "pseudonyms", "propagation"] as const) db[key] = [];
       });
       pg = created;
       after(() => created.prisma.$disconnect());

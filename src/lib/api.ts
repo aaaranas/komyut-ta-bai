@@ -97,4 +97,15 @@ export const api = {
   labPost: <T>(path: string, body: unknown) =>
     request<T>(`/api/lab/${path}`, { method: "POST", body: JSON.stringify(body) }),
   labDelete: <T>(path: string) => request<T>(`/api/lab/${path}`, { method: "DELETE" }),
+  labExport: async (kind: "rides" | "decisions" | "propagation"): Promise<Blob> => {
+    const headers = new Headers({ [DEVICE_HEADER]: deviceId() });
+    const labKey = readString(STORAGE_KEYS.labKey);
+    if (labKey) headers.set(LAB_KEY_HEADER, labKey);
+    const response = await fetch(`/api/lab/export?kind=${kind}`, { headers, cache: "no-store" });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new ApiError(response.status, body.error ?? `Export failed (${response.status})`);
+    }
+    return response.blob();
+  },
 };
