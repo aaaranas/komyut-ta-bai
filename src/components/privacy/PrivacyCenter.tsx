@@ -10,6 +10,8 @@ import { getRoute, getStop } from "@/core/transit/catalog";
 import { formatAge } from "@/core/transit/time";
 import { updateConsent, useConsent } from "@/hooks/useConsent";
 import { useNow } from "@/hooks/useNow";
+import { DevModeChip, SignInButton, SignOutButton, useIdentity } from "@/components/auth/Identity";
+import { signOutOfGoogle } from "@/app/actions/auth";
 import { api, resetDeviceId, type ContributorSummary } from "@/lib/api";
 import { CATEGORY_CONFIG } from "@/lib/presentation";
 
@@ -45,7 +47,7 @@ const COLLECTED = [
   "For each report: the type, the stop, the ride (for delays and full vehicles), and when you saw it.",
   "If you attach location: only your distance from the stop, rounded to 10 m. Coordinates are thrown away on arrival.",
   "If you share ride times: stop-to-stop durations worked out on your phone. Raw GPS points never leave it.",
-  "A pseudonym made from a random ID on this phone. No name, number, or account.",
+  "A pseudonym: a salted hash of your Google account ID (or, in dev mode, of a random ID on this phone), plus a random nickname. Your name and email are not stored.",
   "Reports are deleted after 90 days and ride times after 30.",
 ];
 
@@ -57,6 +59,8 @@ export default function PrivacyCenter() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmErase, setConfirmErase] = useState(false);
+  const { identity } = useIdentity();
+  const google = identity?.mode === "google";
 
   const load = useCallback(async () => {
     try {
@@ -92,7 +96,10 @@ export default function PrivacyCenter() {
     try {
       await api.eraseMe();
       setConfirmErase(false);
-      await Promise.all([load(), refreshConditions()]);
+      await refreshConditions();
+      // The account is gone too, so end the session.
+      if (google) await signOutOfGoogle("/privacy");
+      else await load();
     } finally {
       setBusy(false);
     }
@@ -139,12 +146,23 @@ export default function PrivacyCenter() {
         <h2 id="pseudonym" className="text-base font-bold">
           Your pseudonym
         </h2>
-        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
-        {!summary && !error ? (
+        {identity?.mode === "dev" && <DevModeChip className="mt-2" />}
+        {google && !identity?.signed_in ? (
+          <div className="mt-2 text-sm">
+            <p className="max-w-prose text-muted-foreground">
+              Sign in to see and manage your reports. Planning trips never needs an account.
+            </p>
+            <SignInButton className="mt-3" />
+          </div>
+        ) : error ? (
+          <p className="mt-2 text-sm text-destructive">{error}</p>
+        ) : null}
+        {google && !identity?.signed_in ? null : !summary && !error ? (
           <p className="mt-2 text-sm text-muted-foreground">Loading…</p>
         ) : summary ? (
           <div className="mt-2 text-sm">
-            <p className="break-all font-medium">{summary.contributor}</p>
+            {summary.nickname && <p className="font-semibold">{summary.nickname}</p>}
+            <p className="break-all text-muted-foreground">{summary.contributor}</p>
             <p className="mt-2 max-w-prose text-muted-foreground">
               Reliability {reputation!.score.toFixed(2)}.{" "}
               {labeled < 0.5
@@ -154,18 +172,26 @@ export default function PrivacyCenter() {
               ride segment{summary.ride_segments === 1 ? "" : "s"}.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  resetDeviceId();
-                  void load();
-                }}
-              >
-                Start a new pseudonym
-              </Button>
+              {google ? (
+                <SignOutButton redirectTo="/privacy" />
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    resetDeviceId();
+                    void load();
+                  }}
+                >
+                  Start a new pseudonym
+                </Button>
+              )}
               <Button variant={confirmErase ? "destructive" : "outline"} size="sm" disabled={busy} onClick={() => void erase()}>
-                {confirmErase ? "Tap again to delete everything" : "Delete all my contributions"}
+                {confirmErase
+                  ? "Tap again to delete everything"
+                  : google
+                    ? "Delete my contributions and account"
+                    : "Delete all my contributions"}
               </Button>
             </div>
           </div>

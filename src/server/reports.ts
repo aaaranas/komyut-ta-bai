@@ -11,6 +11,7 @@ import {
 import { getRoute, getStop } from "@/core/transit/catalog";
 import { haversineKm } from "@/core/transit/geo";
 import { HttpError, newId } from "@/server/http";
+import { ensurePseudonym, eraseIdentity } from "@/server/identity";
 import { evaluateSensing } from "@/server/sensing";
 import { store, type Database } from "@/server/store";
 
@@ -132,6 +133,7 @@ export async function submitReport(body: Record<string, unknown>, contributor: s
     if (recent.length >= RATE_LIMIT.reports) {
       throw new HttpError(429, "Too many reports in a short time. Please wait a few minutes.");
     }
+    ensurePseudonym(db, contributor);
     db.reports.push(report);
     return receiptFor(db, report, now);
   });
@@ -168,6 +170,7 @@ export async function contributorSummary(contributor: string) {
     };
     return {
       contributor,
+      nickname: db.pseudonyms.find((p) => p.pseudonym === contributor)?.nickname ?? null,
       reputation: reputations.get(contributor) ?? NEW_CONTRIBUTOR,
       reports: mine.map(statusOf),
       ride_segments: db.segments.filter((s) => s.contributor === contributor).length,
@@ -175,7 +178,7 @@ export async function contributorSummary(contributor: string) {
   });
 }
 
-/** Retention control: erases every report, label, and trace tied to a pseudonym. */
+/** Retention control: erases every report, label, trace, and the linked account of a pseudonym. */
 export async function eraseContributor(contributor: string) {
   return store.write((db) => {
     const removed = new Set(db.reports.filter((r) => r.contributor === contributor).map((r) => r.id));
@@ -184,6 +187,7 @@ export async function eraseContributor(contributor: string) {
     db.labels = db.labels.filter((label) => !removed.has(label.report_id));
     db.segments = db.segments.filter((s) => s.contributor !== contributor);
     db.traces = db.traces.filter((t) => t.contributor !== contributor);
-    return { erased_reports: before.reports, erased_segments: before.segments };
+    const { account_deleted } = eraseIdentity(db, contributor);
+    return { erased_reports: before.reports, erased_segments: before.segments, account_deleted };
   });
 }

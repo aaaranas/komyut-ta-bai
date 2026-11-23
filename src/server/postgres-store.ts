@@ -36,6 +36,21 @@ const d = (tx: Tx, model: string) => (tx as unknown as Record<string, Delegate>)
 
 /** Domain ↔ row mapping for every table, so both stores hold exactly the same data. */
 const TABLES: { [K in TableName]: Table<K> } = {
+  // Users before pseudonyms: a pseudonym row references its user.
+  users: {
+    name: "users",
+    delegate: (tx) => d(tx, "user"),
+    key: "id",
+    toRow: (u) => ({ ...u, created_at: date(u.created_at) }),
+    fromRow: (row) => ({ ...as<Item<"users">>(row), created_at: iso(row.created_at) }),
+  },
+  pseudonyms: {
+    name: "pseudonyms",
+    delegate: (tx) => d(tx, "pseudonym"),
+    key: "pseudonym",
+    toRow: (p) => ({ ...p, created_at: date(p.created_at) }),
+    fromRow: (row) => ({ ...as<Item<"pseudonyms">>(row), created_at: iso(row.created_at) }),
+  },
   reports: {
     name: "reports",
     delegate: (tx) => d(tx, "report"),

@@ -62,8 +62,16 @@ export interface ReportReceipt {
   confidence: number | null;
 }
 
+export interface Identity {
+  mode: "google" | "dev";
+  signed_in: boolean;
+  nickname: string | null;
+  researcher: boolean;
+}
+
 export interface ContributorSummary {
   contributor: string;
+  nickname: string | null;
   reputation: Reputation;
   reports: ReportReceipt[];
   ride_segments: number;
@@ -77,7 +85,9 @@ export const api = {
   withdrawReport: (id: string) =>
     request<ReportReceipt>(`/api/reports/${encodeURIComponent(id)}`, { method: "DELETE" }),
   me: () => request<ContributorSummary>("/api/me"),
-  eraseMe: () => request<{ erased_reports: number; erased_segments: number }>("/api/me", { method: "DELETE" }),
+  eraseMe: () =>
+    request<{ erased_reports: number; erased_segments: number; account_deleted: boolean }>("/api/me", { method: "DELETE" }),
+  identity: () => request<Identity>("/api/me/identity"),
   submitTrace: (body: { route_id: string; segments: DerivedSegment[]; quality: TraceQuality; consent: true }) =>
     request<{ trace_id: string; accepted: number; rejected: string[] }>("/api/traces", {
       method: "POST",

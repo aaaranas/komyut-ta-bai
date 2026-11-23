@@ -13,6 +13,7 @@ import type { LabelBasis, TruthLabel } from "@/core/sensing/types";
 import { getRoute, getStop } from "@/core/transit/catalog";
 import type { Stop } from "@/core/transit/types";
 import { toLocalDateTimeValue } from "@/core/transit/time";
+import { SignInButton, SignOutButton, useIdentity } from "@/components/auth/Identity";
 import { api, ApiError } from "@/lib/api";
 import { CATEGORY_CONFIG } from "@/lib/presentation";
 import { STORAGE_KEYS, readString, writeString } from "@/lib/storage";
@@ -54,6 +55,8 @@ export default function LabConsole() {
   const [data, setData] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needsKey, setNeedsKey] = useState(false);
+  const [denied, setDenied] = useState<string | null>(null);
+  const { identity } = useIdentity();
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -61,8 +64,10 @@ export default function LabConsole() {
       setData(await api.lab<Overview>());
       setError(null);
       setNeedsKey(false);
+      setDenied(null);
     } catch (caught) {
       if (caught instanceof ApiError && caught.status === 401) setNeedsKey(true);
+      if (caught instanceof ApiError && caught.status === 403) setDenied(caught.message);
       setError(caught instanceof Error ? caught.message : "Could not load the lab.");
     }
   }, []);
@@ -84,6 +89,17 @@ export default function LabConsole() {
     }
   };
 
+  if (identity?.mode === "google" && (needsKey || denied)) {
+    return (
+      <div className="mt-6 max-w-prose space-y-3 text-sm">
+        <p className="font-semibold">{denied ?? "Sign in with a researcher account to use the lab."}</p>
+        <p className="text-muted-foreground">
+          Access is limited to the emails listed in <code>KOMYUT_RESEARCHER_EMAILS</code>.
+        </p>
+        {denied ? <SignOutButton redirectTo="/lab" /> : <SignInButton />}
+      </div>
+    );
+  }
   if (needsKey) return <LabKeyForm onSaved={() => void load()} />;
   if (!data) {
     return (
@@ -101,8 +117,10 @@ export default function LabConsole() {
   return (
     <div>
       <p className="mt-4 max-w-prose border-l-[3px] border-warn pl-3 text-sm">
-        Authentication is not implemented yet. Set <code>KOMYUT_LAB_KEY</code> on any shared deployment so only
-        researchers can label reports or load scenarios. Storage: {data.storage}.
+        {identity?.mode === "google"
+          ? "Signed in as a researcher (KOMYUT_RESEARCHER_EMAILS). "
+          : "Dev mode: Google sign-in isn't configured, so the lab is gated only by KOMYUT_LAB_KEY when it is set. "}
+        Storage: {data.storage}.
       </p>
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 

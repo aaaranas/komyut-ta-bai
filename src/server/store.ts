@@ -19,6 +19,22 @@ export interface TraceRecord {
   rejected_segments: number;
 }
 
+/** A signed-in account. Only salted hashes of the Google subject and email are kept. */
+export interface UserRecord {
+  id: string;
+  subject_hash: string;
+  email_hash: string;
+  created_at: string;
+}
+
+/** Public face of a contributor, kept apart from the account. */
+export interface PseudonymRecord {
+  pseudonym: string;
+  nickname: string;
+  user_id: string | null;
+  created_at: string;
+}
+
 export interface Database {
   version: 1;
   reports: Report[];
@@ -27,6 +43,8 @@ export interface Database {
   segments: SegmentObservation[];
   traces: TraceRecord[];
   validations: FieldValidation[];
+  users: UserRecord[];
+  pseudonyms: PseudonymRecord[];
 }
 
 const FILE_NAME = "komyut-db.json";
@@ -43,6 +61,8 @@ export const emptyDatabase = (): Database => ({
   segments: [],
   traces: [],
   validations: [],
+  users: [],
+  pseudonyms: [],
 });
 
 export function prune(db: Database, now: Date): void {
