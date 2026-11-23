@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Info, Megaphone, Navigation, Route, ShieldCheck } from "lucide-react";
+import { BellRing, Megaphone, Navigation, Route, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useConditions } from "@/components/providers/ConditionsProvider";

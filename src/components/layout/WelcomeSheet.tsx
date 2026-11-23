@@ -1,7 +1,7 @@
 "use client";
 
 import { MapPin, Navigation, Waves } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { updateConsent, useConsent } from "@/hooks/useConsent";
 import { STORAGE_KEYS, readString, writeString } from "@/lib/storage";
@@ -34,18 +34,22 @@ function Toggle({
   );
 }
 
+const noopSubscribe = () => () => {};
+
 export default function WelcomeSheet() {
   const consent = useConsent();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const already = readString(STORAGE_KEYS.onboarded);
-    if (!already) setOpen(true);
-  }, []);
+  const [dismissed, setDismissed] = useState(false);
+  // Server snapshot reports "onboarded" so the sheet never renders during SSR.
+  const onboarded = useSyncExternalStore(
+    noopSubscribe,
+    () => readString(STORAGE_KEYS.onboarded) !== null,
+    () => true
+  );
+  const open = !dismissed && !onboarded;
 
   const dismiss = () => {
     writeString(STORAGE_KEYS.onboarded, "1");
-    setOpen(false);
+    setDismissed(true);
   };
 
   if (!open) return null;
